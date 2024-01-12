@@ -53,6 +53,10 @@ frappe.query_reports["Material Requirements Planning"] = {
 			value = data["required_qty"];			
 			column.link_onclick = "frappe.query_reports['Material Requirements Planning'].required_qty_popup(" + JSON.stringify(data) + ")";
 		}
+		if (column.fieldname == "po_qty" && data ) {
+			value = data["po_qty"];			
+			column.link_onclick = "frappe.query_reports['Material Requirements Planning'].set_route_to_po_qty(" + JSON.stringify(data) + ")";
+		}
 		
 		value = default_formatter(value, row, column, data);
 		return value;

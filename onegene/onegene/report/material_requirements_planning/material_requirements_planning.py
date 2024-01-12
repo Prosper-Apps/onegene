@@ -25,6 +25,7 @@ def execute(filters=None):
 def get_data(filters):
     dat = []
     da = []
+    with_rej =[]
     data = []
     consolidated_items = {}
     bom_list = []
@@ -41,12 +42,11 @@ def get_data(filters):
     for k in bom_list:
         exploded_data = []
         
-        get_exploded_items(k["bom"],k["order_schedule"], exploded_data, k["qty"],k["sch_date"], bom_list)
+        get_exploded_items(k["bom"], exploded_data, k["qty"],k["sch_date"], bom_list)
 
         for item in exploded_data:
             item_code = item['item_code']
             qty = item['qty']
-            order_schedule = item['order_schedule']
 
             if item_code in consolidated_items:
                 consolidated_items[item_code] += qty
@@ -64,15 +64,15 @@ def get_data(filters):
                                 where `tabMaterial Request Item`.item_code = %s and `tabMaterial Request`.docstatus != 2
                                 and `tabMaterial Request`.transaction_date = CURDATE() """, (item['item_code']), as_dict=1)
             today_req = sf[0].qty if sf else 0
-            item_billing_type = frappe.db.get_value("Item",{'item_code':item['item_code']},'item_billing_type')
+            
             stock = frappe.db.get_value("Bin", {'item_code': item['item_code'], 'warehouse': "SFS Store - O"}, ['actual_qty']) or 0
             item_type =frappe.db.get_value("Item",{'item_code':item['item_code']},'item_type')
             rejection =frappe.db.get_value("Item",{'item_code':item['item_code']},'rejection_allowance')
             item_name =frappe.db.get_value("Item",{'item_code':item['item_code']},'item_name')
-            safety_stock =frappe.db.get_value("Item",{'item_code':item['item_code']},'safety_stock') or 0
-            pack_size =frappe.db.get_value("Item",{'item_code':item['item_code']},'pack_size') or 0
+            safety_stock =frappe.db.get_value("Item",{'item_code':item['item_code']},'safety_stock')
+            pack_size =frappe.db.get_value("Item",{'item_code':item['item_code']},'pack_size')
             lead_time_days =frappe.db.get_value("Item",{'item_code':item['item_code']},'lead_time_days')
-            moq =frappe.db.get_value("Item",{'item_code':item['item_code']},'min_order_qty') or 0
+            moq =frappe.db.get_value("Item",{'item_code':item['item_code']},'min_order_qty')
             stockqty = frappe.db.sql(""" select item_code,sum(actual_qty) as qty from `tabBin` where item_code = '%s' """%(item['item_code']),as_dict = 1)[0]
             ppoc_total = 0
             ppoc_query = frappe.db.sql("""select sum(`tabPurchase Order Item`.qty) as qty from `tabPurchase Order`
@@ -86,8 +86,7 @@ def get_data(filters):
             if not ppoc_receipt["qty"]:
                 ppoc_receipt["qty"] = 0
             ppoc_total = ppoc_query["qty"] - ppoc_receipt["qty"]
-            if not ppoc_total:
-                ppoc_total = 0
+            
 
 
             if stockqty['qty']:
@@ -100,16 +99,14 @@ def get_data(filters):
             cal = sfs + today_req if today_req else 0
             
             req_qty = req - cal if cal <= req else 0
-            if rejection:
-                reject = (ceil(req) * (rejection/100)) + ceil(req)
-                with_rej = ((ceil(req) * (rejection/100)) + ceil(req))
+            reject = (ceil(req) * (rejection/100)) + ceil(req)
+            with_rej = ((ceil(req) * (rejection/100)) + ceil(req))
 
             if ceil(req) > 0:
                 uom = frappe.db.get_value("Item",item_code,'stock_uom')
                 da.append(frappe._dict({
                     'item_code': item['item_code'],
                     'item_name': item_name,
-                    'order_schedule': order_schedule,
                     'schedule_date': frappe.utils.today(),
                     'bom': bom,
                     'with_rej':with_rej,
@@ -130,6 +127,7 @@ def get_data(filters):
                     'pack_size':pack_size,
                     'lead_time_days':lead_time_days,
                     'po_qty':ppoc_total,
+                    'indent':0,
                 }))
     mpd = frappe.db.get_list('Material Planning Details',{'date':today()})
     for list in mpd:
@@ -154,7 +152,6 @@ def get_data(filters):
                 new_doc.append('material_plan',{
                     'item_code': k['item_code'],
                     'item_name': k['item_name'],
-                    'order_schedule': k['order_schedule'],
                     'schedule_date': k['schedule_date'],
                     'pack_size':k['pack_size'],
                     'lead_time':k['lead_time_days'],
@@ -197,32 +194,29 @@ def get_data(filters):
                         order_qty = k['moq']
                 if k['po_qty'] > (to_be_order):
                     order_qty = 0
-                if k['item_code']:
-                # frappe.log_error(title= "s", message = k['item_code'])
-                    new_doc.append('material_plan',{
-                        'item_code': k['item_code'],
-                        'item_name': k['item_name'],
-                        'order_schedule': k['order_schedule'],
-                        'item_type':item_type,
-                        'schedule_date': k['schedule_date'],
-                        'pack_size':k['pack_size'],
-                        'lead_time':k['lead_time_days'],
-                        'required_qty': k['required_qty'],
-                        'sfs_qty': k['sfs_qty'],
-                        'order_schedule_date':k['date'],
-                        'stock_uom':uom,
-                        'moq':k['moq'],
-                        'uom':uom,
-                        'po_qty': k['po_qty'],
-                        'order_qty':order_qty,
-                        'qty': order_qty,
-                        'conversion_factor':1,
-                        'expected_date':exp_date,
-                        'actual_stock_qty':k['actual_stock_qty'],
-                        'safety_stock':k['safety_stock'],
-                        'qty_with_rejection_allowance':k['qty_with_rejection_allowance']
-                    })
-                    new_doc.save(ignore_permissions=True)
+                new_doc.append('material_plan',{
+                    'item_code': k['item_code'],
+                    'item_name': k['item_name'],
+                    'item_type':item_type,
+                    'schedule_date': k['schedule_date'],
+                    'pack_size':k['pack_size'],
+                    'lead_time':k['lead_time_days'],
+                    'required_qty': k['required_qty'],
+                    'sfs_qty': k['sfs_qty'],
+                    'order_schedule_date':k['date'],
+                    'stock_uom':uom,
+                    'moq':k['moq'],
+                    'uom':uom,
+                    'po_qty': k['po_qty'],
+                    'order_qty':order_qty,
+                    'qty': order_qty,
+                    'conversion_factor':1,
+                    'expected_date':exp_date,
+                    'actual_stock_qty':k['actual_stock_qty'],
+                    'safety_stock':k['safety_stock'],
+                    'qty_with_rejection_allowance':k['qty_with_rejection_allowance']
+                })
+                new_doc.save(ignore_permissions=True)
 
     for item_code, qty in consolidated_items.items():
         pps = frappe.db.sql("""select sum(actual_qty) as qty from `tabBin`
@@ -235,14 +229,13 @@ def get_data(filters):
                             where `tabMaterial Request Item`.item_code = %s and `tabMaterial Request`.docstatus != 2
                             and `tabMaterial Request`.transaction_date = CURDATE() """, (item_code), as_dict=1)
         today_req = sf[0].qty if sf else 0
-        item_billing_type = frappe.db.get_value("Item",{'item_code':item_code},'item_billing_type')
         item_type =frappe.db.get_value("Item",{'item_code':item_code},'item_type')
         stock = frappe.db.get_value("Bin", {'item_code': item_code, 'warehouse': "SFS Store - O"}, ['actual_qty']) or 0
         rejection =frappe.db.get_value("Item",{'item_code':item_code},'rejection_allowance')
         item_name =frappe.db.get_value("Item",{'item_code':item_code},'item_name')
-        safety_stock =frappe.db.get_value("Item",{'item_code':item_code},'safety_stock') or 0
-        pack_size =frappe.db.get_value("Item",{'item_code':item_code},'pack_size') or 0
-        moq =frappe.db.get_value("Item",{'item_code':item_code},'min_order_qty') or 0
+        safety_stock =frappe.db.get_value("Item",{'item_code':item_code},'safety_stock')
+        pack_size =frappe.db.get_value("Item",{'item_code':item_code},'pack_size')
+        moq =frappe.db.get_value("Item",{'item_code':item_code},'min_order_qty')
         lead_time_days =frappe.db.get_value("Item",{'item_code':item_code},'lead_time_days')
         stockqty = frappe.db.sql(""" select item_code,sum(actual_qty) as qty from `tabBin` where item_code = '%s' """%(item_code),as_dict = 1)[0]
         ppoc_total = 0
@@ -257,8 +250,7 @@ def get_data(filters):
         if not ppoc_receipt["qty"]:
             ppoc_receipt["qty"] = 0
         ppoc_total = ppoc_query["qty"] - ppoc_receipt["qty"]
-        if not ppoc_total:
-            ppoc_total = 0
+        
 
 
         if stockqty['qty']:
@@ -272,9 +264,8 @@ def get_data(filters):
         # cal = sfs + today_req if today_req else 0
         
         req_qty = req - cal if cal <= req else 0
-        if rejection:
-            reject = (ceil(req) * (rejection/100)) + ceil(req)
-            with_rej = ((ceil(req) * (rejection/100)) + ceil(req) + safety_stock)
+        reject = (ceil(req) * (rejection/100)) + ceil(req)
+        with_rej = ((ceil(req) * (rejection/100)) + ceil(req) + safety_stock)
         if stockqty > with_rej:
             to_order = 0
         if stockqty < with_rej:
@@ -296,40 +287,40 @@ def get_data(filters):
         if to_be_order >0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
-            uom = frappe.db.get_value("Item",item_code,'stock_uom')
-            if item_code:      
-                dat.append(frappe._dict({
-                    'item_code': item_code,
-                    'item_name': item_name,
-                    'schedule_date': frappe.utils.today(),
-                    'bom': bom,
-                    'moq':moq,
-                    # 'uom': uom,
-                    'click' :"Click for Detailed View",
-                    'qty': to_be_order,
-                    'actual_stock_qty': str(round(stockqty,5)),
-                    'safety_stock':safety_stock,
-                    'qty_with_rejection_allowance':reject,
-                    'required_qty': str(round(qty,5)),
-                    'custom_total_req_qty': req,
-                    'custom_current_req_qty': req,
-                    'custom_stock_qty_copy': pps,
-                    'sfs_qty': sfs,
-                    'custom_requesting_qty': req_qty,
-                    'custom_today_req_qty': today_req,
-                    'uom': uom,
-                    'item_type':item_type,
-                    'item_billing_type':item_billing_type,
-                    'pack_size':pack_size,
-                    'lead_time_days':lead_time_days,
-                    'expected_date':exp_date,
-                    # 'po_qty':ppoc_total,
-                    'po_qty':str(ppoc_total),
-                    'to_order':order_qty
-                }))
+            uom = frappe.db.get_value("Item",item_code,'stock_uom')            
+            dat.append(frappe._dict({
+                'item_code': item_code,
+                'item_name': item_name,
+                'schedule_date': frappe.utils.today(),
+                'bom': bom,
+                'moq':moq,
+                # 'uom': uom,
+                'click' :"Click for Detailed View",
+                'qty': to_be_order,
+                'actual_stock_qty': str(round(stockqty,5)),
+                'safety_stock':safety_stock,
+                'qty_with_rejection_allowance':reject,
+                'required_qty': str(round(qty,5)),
+                'custom_total_req_qty': req,
+                'custom_current_req_qty': req,
+                'custom_stock_qty_copy': pps,
+                'sfs_qty': sfs,
+                'custom_requesting_qty': req_qty,
+                'custom_today_req_qty': today_req,
+                'uom': uom,
+                'item_type':item_type,
+                'pack_size':pack_size,
+                'lead_time_days':lead_time_days,
+                'expected_date':exp_date,
+                'po_qty':ppoc_total,
+                'indent':0,
+                'to_order':order_qty
+            }))
+
+    frappe.log_error(title = 's',message = dat)   
     return dat
 
-def get_exploded_items(bom, order_schedule,data, qty, sch_date, skip_list):
+def get_exploded_items(bom, data, qty, sch_date, skip_list):
     bomitem = frappe.db.get_value("Item", {'default_bom': bom}, ['name'])
     data.append({
             "item_code": bomitem,
@@ -337,7 +328,6 @@ def get_exploded_items(bom, order_schedule,data, qty, sch_date, skip_list):
             # "bom": item['bom'],
             # "uom": item['uom'],
             "qty": qty,
-            "order_schedule": order_schedule,
             # "stock_qty": stock,
             # "qty_to_order": to_order,
             # "description": item['description'],
@@ -355,7 +345,6 @@ def get_exploded_items(bom, order_schedule,data, qty, sch_date, skip_list):
         stock = frappe.db.get_value("Bin", {'item_code': item_code}, ['actual_qty']) or 0
         to_order = max(item_qty - stock, 0)
         data.append({
-            "order_schedule": order_schedule,
             "item_code": item_code,
             "item_name": item['item_name'],
             "bom": item['bom'],
@@ -368,7 +357,7 @@ def get_exploded_items(bom, order_schedule,data, qty, sch_date, skip_list):
         })
 
         if item['bom']:
-            get_exploded_items(item['bom'],order_schedule,data, qty=item_qty, sch_date=sch_date, skip_list=skip_list)
+            get_exploded_items(item['bom'], data, qty=item_qty, sch_date=sch_date, skip_list=skip_list)
 
 def get_columns():
     return [
@@ -381,7 +370,6 @@ def get_columns():
         },
         {"label": _("Item Name"), "fieldtype": "Data", "fieldname": "item_name", "width": 290},
         {"label": _("Item Type"), "fieldtype": "Data", "fieldname": "item_type", "width": 150},
-        {"label": _("Item Billing Type"), "fieldtype": "Data", "fieldname": "item_billing_type", "width": 150},
         {"label": _("UOM"), "fieldtype": "Data", "fieldname": "uom", "width": 100},
         {"label": _("Required Qty"), "fieldtype": "Link", "fieldname": "required_qty", "width": 100, "options": "Material Planning Details"},
         {"label": _("Qty with Rejection Allowance"), "fieldtype": "Float", "fieldname": "qty_with_rejection_allowance", "width": 100},
@@ -390,7 +378,7 @@ def get_columns():
         {"label": _("Safety Stock"), "fieldtype": "Float", "fieldname": "safety_stock", "width": 100},
         {"label": _("Pack Size"), "fieldtype": "Data", "fieldname": "pack_size", "width": 100},
         {"label": _("Order Qty"), "fieldtype": "Float", "fieldname": "qty", "width": 100},
-        {"label": _("PO Qty"), "fieldtype": "Link", "fieldname": "po_qty", "width": 100,"options": "Purchase Order Item"},
+        {"label": _("PO Qty"), "fieldtype": "Float", "fieldname": "po_qty", "width": 100},
         {"label": _("MOQ"), "fieldtype": "Float", "fieldname": "moq", "width": 100},
         {"label": _("Qty to Order"), "fieldtype": "Float", "fieldname": "to_order", "width": 100},
         {"label": _("Lead Time Days"), "fieldtype": "Data", "fieldname": "lead_time_days", "width": 100},

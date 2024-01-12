@@ -200,7 +200,7 @@
    "type": "Link"
   }
  ],
- "modified": "2023-12-13 09:59:02.670161",
+ "modified": "2024-01-12 07:15:38.207316",
  "modified_by": "Administrator",
  "module": "ONEGENE",
  "name": "Home",
@@ -210,8 +210,12 @@
  "public": 1,
  "quick_lists": [],
  "restrict_to_domain": "",
- "roles": [],
- "sequence_id": 1.0,
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 2.0,
  "shortcuts": [
   {
    "color": "Red",

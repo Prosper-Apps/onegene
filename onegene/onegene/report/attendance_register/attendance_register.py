@@ -11,11 +11,6 @@ from math import floor
 from frappe import msgprint, _
 from calendar import month, monthrange
 from datetime import date, timedelta, datetime,time
-# from numpy import true_divide
-
-# import pandas as pd
-
-
 
 def execute(filters=None):
 	columns = get_columns(filters)
@@ -57,6 +52,8 @@ def get_data(filters):
 		row4 = ["","","","","","Shift"]
 		row5 = ["","","","","","TWH"]
 		row6 = ["","","","","","OT"]
+		row7 = ["","","","","","Late Entry"]
+		row8 = ["","","","","","Early Out"]
 		total_present = 0
 		total_half_day = 0
 		total_absent = 0
@@ -153,8 +150,29 @@ def get_data(filters):
 					out_tim = ''
 				row2.append(in_tim)
 				row3.append(out_tim)
-				if shift:
-					row4.append(shift)
+				if in_time and out_time:
+					if shift:
+						row4.append(shift)
+					else:
+						row4.append("-")
+					if working_hours is not None:
+						w_hrs = working_hours
+						row5.append(w_hrs)
+					else:
+						row5.append("-")
+					if overtime_hours:
+						row6.append(overtime_hours)
+						total_ot+=1
+					else:
+						row6.append("-")
+					if att.late_entry == 1:
+						row7.append(att.custom_late_entry_time)
+					else:
+						row7.append('-')
+					if att.early_exit == 1:
+						row8.append(att.custom_early_out_time)
+					else:
+						row8.append('-')
 				else:
 					row4.append("-")
 				if working_hours is not None:
@@ -162,11 +180,9 @@ def get_data(filters):
 					row5.append(w_hrs)
 				else:
 					row5.append("-")
-				if overtime_hours:
-					row6.append(overtime_hours)
-					total_ot+=1
-				else:
 					row6.append("-")
+					row7.append('-')
+					row8.append('-')
 			else:
 				row1.append("-")
 				row2.append('-')
@@ -174,72 +190,96 @@ def get_data(filters):
 				row4.append('-')
 				row5.append('-')
 				row6.append('-')
+				row7.append('-')
+				row8.append('-')
 		row1.append(total_present)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_half_day)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_od)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_absent)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_weekoff)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_holiday)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_paid_leave)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_lop)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_combo_off)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		row1.append(total_ot)
 		row2.append('-')
 		row3.append('-')
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
+		row7.append('-')
+		row8.append('-')
 		data.append(row1)
 		data.append(row2)
 		data.append(row3)
 		data.append(row4)
 		data.append(row5)
 		data.append(row6)
+		data.append(row7)
+		data.append(row8)
 	return data
 
 def get_dates(from_date,to_date):
