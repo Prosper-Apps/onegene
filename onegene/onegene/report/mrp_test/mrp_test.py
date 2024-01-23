@@ -68,7 +68,6 @@ def get_data(filters):
     for item_code, qty in count_consolidated_items.items():
         count_list.append(frappe._dict({'item_code': item_code,'order':count}))
         count = count+1
-    frappe.errprint(count_list)
 
     for s in os:
         bom = frappe.db.get_value("Item", {'name': s.item_code}, ['default_bom'])
@@ -128,7 +127,9 @@ def get_data(filters):
         pack = 0
         if pack_size > 0:
             pack = to_order/ pack_size
-        to_be_order = ceil(pack) * pack_size
+            to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -137,7 +138,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            
@@ -173,7 +174,12 @@ def get_data(filters):
         bom_item = frappe.db.get_value("BOM", {'item': d['item_code']}, ['name'])
         get_exploded_items(bom_item, exploded_data, d["to_order"], bom_list)
         for item in exploded_data:
-            item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            # item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            if item['bom']:
+                if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
+                    item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            else:
+                item_code = item['item_code']
             qty = item['qty']
             if item_code and item_code in consolidated_dict:
                 consolidated_dict[item_code] += qty
@@ -224,9 +230,11 @@ def get_data(filters):
             to_order = with_rej - stockqty
         pack = 0
         to_be_order = 0
-        if pack_size and pack_size > 0:
+        if pack_size > 0:
             pack = to_order/ pack_size
             to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -235,7 +243,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            
@@ -271,11 +279,14 @@ def get_data(filters):
         exploded_data = []       
         bom_item = frappe.db.get_value("BOM", {'item': id['item_code']}, ['name'])
         get_bom_exploded_items(bom_item, exploded_data, id["to_order"], bom_list)
+        frappe.errprint(exploded_data)
         for item in exploded_data:
-            if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
-                item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            if item['bom']:
+                if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
+                    item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
             else:
                 item_code = item['item_code']
+            
             qty = item['qty']
             if item_code and item_code in consolidated:
                 consolidated[item_code] += qty
@@ -327,9 +338,11 @@ def get_data(filters):
             to_order = with_rej - stockqty
         pack = 0
         to_be_order = 0
-        if pack_size and pack_size > 0:
+        if pack_size > 0:
             pack = to_order/ pack_size
             to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -338,7 +351,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            
@@ -378,8 +391,9 @@ def get_data(filters):
         if bom_item:
             get_sub_bom_exploded_items(bom_item, exploded, di["to_order"], bomlist)
         for item in exploded:
-            if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
-                item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            if item['bom']:
+                if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
+                    item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
             else:
                 item_code = item['item_code']
             qty = item['qty']
@@ -433,9 +447,11 @@ def get_data(filters):
             to_order = with_rej - stockqty
         pack = 0
         to_be_order = 0
-        if pack_size and pack_size > 0:
+        if pack_size > 0:
             pack = to_order/ pack_size
             to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -444,7 +460,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            
@@ -484,8 +500,9 @@ def get_data(filters):
         if bom_item:
             get_sub_bom_exploded_items(bom_item, exploded, ct["to_order"], bomlist)
         for item in exploded:
-            if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
-                item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            if item['bom']:
+                if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
+                    item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
             else:
                 item_code = item['item_code']
             qty = item['qty']
@@ -539,9 +556,11 @@ def get_data(filters):
             to_order = with_rej - stockqty
         pack = 0
         to_be_order = 0
-        if pack_size and pack_size > 0:
+        if pack_size > 0:
             pack = to_order/ pack_size
             to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -550,7 +569,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            
@@ -590,8 +609,9 @@ def get_data(filters):
         if bom_item:
             get_sub_bom_exploded_items(bom_item, exploded, f["to_order"], bomlist)
         for item in exploded:
-            if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
-                item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
+            if item['bom']:
+                if frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name']):
+                    item_code = frappe.db.get_value("Item", {'default_bom': item['bom']}, ['name'])
             else:
                 item_code = item['item_code']
             qty = item['qty']
@@ -645,9 +665,11 @@ def get_data(filters):
             to_order = with_rej - stockqty
         pack = 0
         to_be_order = 0
-        if pack_size and pack_size > 0:
+        if pack_size > 0:
             pack = to_order/ pack_size
             to_be_order = ceil(pack) * pack_size
+        else:
+            to_be_order = ceil(to_order)
         order_qty = 0
         if to_be_order > ppoc_total:
             order_qty = to_be_order - ppoc_total
@@ -656,7 +678,7 @@ def get_data(filters):
         if moq > 0 and moq > order_qty:
             order_qty = moq
         exp_date = ''
-        if to_be_order >0:
+        if to_be_order >0 and lead_time_days > 0:
             exp_date = add_days(nowdate(), lead_time_days)
         if ceil(req) > 0:
             uom = frappe.db.get_value("Item",item_code,'stock_uom')            

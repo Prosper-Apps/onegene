@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "MP-.####",
+ "creation": "2024-01-23 05:42:53.320769",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "section_break_tfmu",
+  "department",
+  "column_break_zv4i",
+  "date",
+  "column_break_cxas",
+  "plan",
+  "column_break_vodu",
+  "business_plan"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_break_tfmu",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "Date"
+  },
+  {
+   "default": "0",
+   "fieldname": "plan",
+   "fieldtype": "Int",
+   "label": "Actual Plan"
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Department",
+   "options": "Department"
+  },
+  {
+   "fieldname": "column_break_zv4i",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_cxas",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_vodu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "business_plan",
+   "fieldtype": "Int",
+   "label": "Business Plan"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2024-01-23 05:58:48.900334",
+ "modified_by": "Administrator",
+ "module": "ONEGENE",
+ "name": "Manpower Plan",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

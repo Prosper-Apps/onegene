@@ -3,6 +3,7 @@ import requests
 from datetime import date
 import erpnext
 import json
+from frappe.utils import now
 from frappe import throw,_
 from frappe.utils import flt
 from frappe.utils import (
@@ -422,12 +423,11 @@ def generate_production_plan():
     from datetime import datetime
     start_date = datetime.today().replace(day=1).date()    
     work_order = frappe.db.sql("""
-        SELECT item_code, item_name, item_group, SUM(qty) AS qty
+        SELECT item_code, item_name, item_group, SUM(pending_qty) AS qty
         FROM `tabOrder Schedule`
         WHERE MONTH(schedule_date) = MONTH(CURRENT_DATE())
         GROUP BY item_code, item_name, item_group
     """, as_dict=1)
-    frappe.errprint(work_order)
     for j in work_order:
         rej_allowance = frappe.get_value("Item",j.item_code,['rejection_allowance'])
         pack_size = frappe.get_value("Item",j.item_code,['pack_size'])
@@ -1118,8 +1118,40 @@ def bday_allocate():
                 bday_amt.amount = 1000
                 bday_amt.save(ignore_permissions = True)
                 bday_amt.submit()
-        
 
+@frappe.whitelist()
+def birth_allowance():
+    employee = frappe.db.sql("""select name
+        from `tabEmployee`
+        where
+            status = 'Active'
+            and employee_category IN ('Staff', 'Operators')
+            AND MONTH(date_of_birth) = 12 """,as_dict = True)   
+    pay = "2023-12-01"
+    for emp in employee:
+        if frappe.db.exists("Salary Structure Assignment",{'employee':emp.name,'docstatus':1}):
+            if not frappe.db.exists('Additional Salary',{'employee':emp.name,'payroll_date':pay,'salary_component':"Birthday Allowance",'docstatus':('!=',2)}):
+                bday_amt = frappe.new_doc("Additional Salary")
+                bday_amt.employee = emp.name
+                bday_amt.payroll_date = pay
+                bday_amt.company = "WONJIN AUTOPARTS INDIA PVT.LTD."
+                bday_amt.salary_component = "Birthday Allowance"
+                bday_amt.currency = "INR"
+                bday_amt.amount = 1000
+                bday_amt.save(ignore_permissions = True)
+                bday_amt.submit()
+        
+def add_bday_allowance():
+	job = frappe.db.exists('Scheduled Job Type', 'bday_allocate')
+	if not job:
+		sjt = frappe.new_doc("Scheduled Job Type")
+	sjt.update({
+		"method": 'onegene.onegene.custom.bday_allocate',
+		"frequency": 'Cron',
+		"cron_format": '0 0 26 * *'
+	})
+	sjt.save(ignore_permissions=True)
+ 
 @frappe.whitelist()
 def weekly_off(doc,method):
 	no_of_days = date_diff(add_days(doc.end_date, 1), doc.start_date)
@@ -1219,3 +1251,98 @@ def sick_leave_allocation():
 				leave_all.save(ignore_permissions=True)
 				leave_all.submit()
 
+		else:
+			leave_all=frappe.new_doc("Leave Allocation")
+			leave_all.employee=emp.name
+			leave_all.leave_type="Sick Leave"
+			leave_all.from_date=year_start_date
+			leave_all.to_date=year_end_date
+			leave_all.new_leaves_allocated=0.5
+			# leave_all.carry_forward=1
+			leave_all.save(ignore_permissions=True)
+			leave_all.submit()
+            
+def update_leave_policy():
+	pre_year = date.today().year - 1	
+	start_of_year = date(pre_year, 1, 1)
+	end_of_year = date(pre_year, 12, 31)
+	current_year = date.today().year
+	start = date(current_year, 1, 1)
+	end = date(current_year, 12, 31)
+	leave = frappe.get_all("Leave Policy Detail", ["leave_type", "annual_allocation"])
+	for i in leave:
+		if i.leave_type =="Earned Leave":
+			employees = frappe.get_all("Employee",{"status": "Active",'employee_category':('!=','Contractor')},["name","company"])
+			for emp in employees:
+				present = frappe.db.count("Attendance",{"employee":emp.name,"status":"Present","attendance_date": ["between", [start_of_year, end_of_year]]})
+				half_day = frappe.db.count("Attendance",{"employee":emp.name,"status":"Half Day","attendance_date": ["between", [start_of_year, end_of_year]]})
+				half = half_day/2
+				attendance = present + half
+				earned_leave = round(attendance /20)
+				if earned_leave:
+					allow = frappe.new_doc("Leave Allocation")
+					allow.employee = emp.name
+					allow.company = emp.company
+					allow.leave_type = "Earned Leave"
+					allow.from_date = start
+					allow.to_date = end
+					allow.new_leaves_allocated = earned_leave
+					allow.total_leaves_allocated = earned_leave
+					allow.save(ignore_permissions=True)
+					allow.submit()
+	frappe.db.commit()
+				
+@frappe.whitelist()
+def create_leave_allocation():	
+	emc = frappe.new_doc("Scheduled Job Type")
+	emc.update({
+		"method": 'onegene.onegene.custom.update_leave_policy',
+		"frequency": 'Cron',
+		"cron_format": '00 01 01 01 *'
+	})
+	emc.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def update_shift(employee,from_date,to_date):
+    shift_3 = frappe.db.count("Attendance",{"employee":employee,"attendance_date": ["between", [from_date, to_date]],"status":"Present","shift":"3"})
+    shift_3_half = frappe.db.count("Attendance",{"employee":employee,"attendance_date": ["between", [from_date, to_date]],"status":"Half Day","shift":"3"})
+    half_3 = shift_3_half/2
+    shift3 = shift_3 + half_3
+    shift_5 = frappe.db.count("Attendance",{"employee":employee,"attendance_date": ["between", [from_date, to_date]],"status":"Present","shift":"5"})
+    shift_5_half = frappe.db.count("Attendance",{"employee":employee,"attendance_date": ["between", [from_date, to_date]],"status":"Half Day","shift":"5"})
+    half_5 = shift_5_half/2
+    shift5 = shift_5 + half_5
+    shift = shift3 + shift5
+    return shift
+
+
+from frappe.utils import cstr, cint, getdate,get_first_day, get_last_day, today, time_diff_in_hours
+@frappe.whitelist()
+def att_req_hours(f_time,t_time,custom_session,custom_shift):
+    if custom_session == "Flexible":
+        if f_time and t_time:
+            frappe.errprint("hlo")
+            time_diff = time_diff_in_hours(t_time,f_time)
+            return time_diff
+    elif custom_session == "Full Day":
+        return "8"
+    else :
+        return "4"
+
+@frappe.whitelist()
+def od_hours_update(doc,method):
+    attendance_exists = frappe.db.exists("Attendance",{'attendance_request',doc.name})
+    if attendance_exists:
+        att = frappe.get_doc("Attendance",{'attendance_request',doc.name})
+        frappe.db.set_value("Attendance", att, "custom_on_duty_hours", doc.custom_total_hours)
+    else:
+        att = frappe.new_doc("Attendance")
+        att.employee = doc.employee
+        att.attendance_date = doc.from_date
+        att.shift = doc.shift
+        att.company = doc.company
+        doc.status = "Present"
+        att.custom_on_duty_hours = doc.custom_total_hours
+        att.attendance_request = doc.name
+        att.insert(ignore_permissions=True)
+        att.submit()

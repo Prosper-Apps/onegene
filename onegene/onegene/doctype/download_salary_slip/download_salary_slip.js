@@ -5,8 +5,11 @@ frappe.ui.form.on("Download Salary Slip", {
 	refresh(frm) {
         if (!frappe.user.has_role('System Manager')) {
 			frappe.db.get_value("Employee",{'user_id':frappe.session.user},['employee','employee_name','employee_category'], (r) => {
+                console.log(r.message)
 				if (r){
 					frm.set_value('employee_id',r.employee)
+                    frm.set_value('employee_name',r.employee_name)
+                    frm.set_value('employee_category',r.employee_category)
 				}
 			})
 			frm.set_df_property("employee_id","read_only",1)

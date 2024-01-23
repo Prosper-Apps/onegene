@@ -118,13 +118,12 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Employee Separation": {
+		"on_submit" : "onegene.onegene.doctype.resignation_form.resignation_form.update_employee",
+        "on_cancel" : "onegene.onegene.doctype.resignation_form.resignation_form.revert_employee"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
@@ -254,8 +253,11 @@ doc_events = {
 		"on_cancel": "onegene.onegene.utils.revert_order_schedule_table"
 	},
 	"Salary Slip":{
-		"after_insert":["onegene.onegene.custom.weekly_off","onegene.onegene.custom.overtime_hours","onegene.onegene.custom.fixed_salary"],
-	}
+		"after_save":["onegene.onegene.custom.weekly_off","onegene.onegene.custom.weekly_off","onegene.onegene.custom.fixed_salary"],
+	},
+	"Attendance Request":{
+		"on_submit": ["onegene.onegene.custom.od_hours_update"]
+	},
 	# "Order Schedule":{
 	# 	"on_update": "onegene.onegene.custom.get_pending_qty"
 	# # 	"on_update": "onegene.onegene.custom.get_customer_name.",

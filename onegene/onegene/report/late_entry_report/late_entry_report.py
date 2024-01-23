@@ -14,6 +14,8 @@ from frappe import _, msgprint
 from frappe.utils import flt
 from frappe.utils import cstr, cint, getdate
 from itertools import count
+import datetime as dt
+from datetime import datetime, timedelta
 
 
 
@@ -28,34 +30,21 @@ def execute(filters=None):
 def get_columns():
     columns = [
         _("Employee") + ":Data:120",_("Employee Name") + ":Data:150",_("Department") + ":Data:150",_("Attendance Date") + ":Data:150",_("Shift") + ":Data:100",
-        _("Shift Time") + ":Data:120",_("In Time") + ":Data:170",
+        _("Shift Time") + ":Data:120",_("In Time") + ":Data:170",_("Late Time") + ":Data:170"
     ]
     return columns
 
 def get_attendance(filters):
     data = []
-    if filters.employee:
-        attendance = frappe.get_all('Attendance',{'status':'Present','attendance_date':('between',(filters.from_date,filters.to_date)),'employee':filters.employee},['*'])
-        late_by = ''
-        for att in attendance:
-            if att.shift and att.in_time:
-                shift_start_time = frappe.db.get_value("Shift Type",att.shift,"start_time")
-                shift_start = frappe.utils.data.get_time(shift_start_time)
-                if att.in_time.time() > shift_start:
-                    row = [att.employee,att.employee_name,att.department,format_date(att.attendance_date),att.shift,shift_start_time,att.in_time]
-                    data.append(row)
-               
-
-    else:
-        attendance = frappe.get_all('Attendance',{'status':'Present','attendance_date':('between',(filters.from_date,filters.to_date))},['*'])
-        late_by = ''
-        for att in attendance:
-            if att.shift and att.in_time:
-                shift_start_time = frappe.db.get_value("Shift Type", att.shift, "start_time")
-                shift_start = frappe.utils.data.get_time(shift_start_time)
-                
-                if att.in_time.time() > shift_start:
-                    row = [att.employee, att.employee_name,att.department, frappe.utils.data.format_date(att.attendance_date), att.shift, shift_start_time, frappe.utils.data.format_datetime(att.in_time)]
-                    data.append(row)
+    attendance = frappe.get_all('Attendance', {'attendance_date': ('between', (filters.from_date, filters.to_date))}, ['*'])
+    for att in attendance:
+        frappe.errprint("HI")
+        if att.shift and att.in_time:
+            shift_time = frappe.get_value("Shift Type", {'name': att.shift}, ["start_time"])
+            shift_start_time = datetime.strptime(str(shift_time), '%H:%M:%S').time()
+            start_time = dt.datetime.combine(att.attendance_date,shift_start_time)
+            if att.in_time > datetime.combine(att.attendance_date, shift_start_time):
+                row = [att.employee, att.employee_name, att.department, frappe.utils.data.format_date(att.attendance_date), att.shift, shift_start_time, att.in_time,att.in_time - start_time]
+                data.append(row)
 
     return data

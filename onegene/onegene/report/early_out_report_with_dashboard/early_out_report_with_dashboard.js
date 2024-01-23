@@ -1,7 +1,7 @@
 // Copyright (c) 2024, TEAMPRO and contributors
 // For license information, please see license.txt
 
-frappe.query_reports["Early Out Report"] = {
+frappe.query_reports["Early Out Report With Dashboard"] = {
 	"filters": [
 		{
 
@@ -11,6 +11,8 @@ frappe.query_reports["Early Out Report"] = {
 			"reqd": 1,
 			
 		},
+		
+		
 		{
 				"fieldname":"to_date",
 				"label": __("To Date"),
@@ -20,5 +22,6 @@ frappe.query_reports["Early Out Report"] = {
 			},	
 			
 
-	]
+	],
+	
 };

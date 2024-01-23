@@ -1,0 +1,117 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2024-01-09 15:05:46.128284",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "report",
+  "section_break_rhgi",
+  "date",
+  "column_break_owsr",
+  "download_report",
+  "downloaded_report",
+  "section_break_bosg",
+  "from_date",
+  "to_date",
+  "salary_slip",
+  "column_break_np9q",
+  "employee",
+  "download"
+ ],
+ "fields": [
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date "
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "in_standard_filter": 1,
+   "label": "To Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "salary_slip",
+   "fieldtype": "Attach",
+   "label": "Salary Slip"
+  },
+  {
+   "fieldname": "column_break_np9q",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "report",
+   "fieldtype": "Select",
+   "label": "Report",
+   "options": "\nBulk Salary Slip Report\nManpower Vs Actual Report"
+  },
+  {
+   "fieldname": "download",
+   "fieldtype": "Button",
+   "label": "Download"
+  },
+  {
+   "depends_on": "eval:doc.report == \"Bulk Salary Slip Report\"",
+   "fieldname": "section_break_bosg",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.report == \"Manpower Vs Actual Report\"",
+   "fieldname": "section_break_rhgi",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_owsr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.date",
+   "fieldname": "download_report",
+   "fieldtype": "Button",
+   "label": "Download Report"
+  },
+  {
+   "depends_on": "eval:doc.date",
+   "fieldname": "downloaded_report",
+   "fieldtype": "Attach",
+   "label": "Downloaded Report"
+  }
+ ],
+ "hide_toolbar": 1,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-01-23 06:13:50.467423",
+ "modified_by": "Administrator",
+ "module": "ONEGENE",
+ "name": "Reports Dashboard",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

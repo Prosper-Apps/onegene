@@ -38,7 +38,8 @@ def get_columns(filters):
 	columns.append(_('LOP')+ ':Data/:100')
 	columns.append(_('COFF')+ ':Data/:100')
 	columns.append(_('OT')+ ':Data/:100')
-	
+	columns.append(_('Shift Allowance Days')+ ':Data/:150')
+	columns.append(_('Shift Allowance Amount')+ ':Data/:150')
 	return columns
 
 def get_data(filters):
@@ -64,6 +65,7 @@ def get_data(filters):
 		total_lop = 0
 		total_paid_leave = 0
 		total_combo_off = 0
+		total_allow = 0
 		for date in dates:
 			if frappe.db.exists("Attendance",{'attendance_date':date,'employee':emp.name,'docstatus':('!=','2')}):
 				att = frappe.get_doc("Attendance",{'attendance_date':date,'employee':emp.name,'docstatus':('!=','2')})
@@ -74,6 +76,18 @@ def get_data(filters):
 				working_hours = att.custom_total_working_hours
 				overtime_hours = att.custom_overtime_hours
 				if status:
+					if status == "Present":
+						if shift =="3" or shift == "5":
+							total_allow +=1
+						else:
+							total_allow +=0
+					elif status == "Half Day":
+						if shift =="3" or shift == "5":
+							total_allow +=0.5
+						else:
+							total_allow +=0
+					else:
+						total_allow +=0
 					if status == "Present":
 						if att.attendance_request is not None:
 							row1.append("OD")
@@ -270,8 +284,18 @@ def get_data(filters):
 		row4.append('-')
 		row5.append('-')
 		row6.append('-')
-		row7.append('-')
-		row8.append('-')
+		row1.append('-')
+		row2.append('-')
+		row3.append('-')
+		row4.append(total_allow)
+		row5.append('-')
+		row6.append('-')
+		row1.append('-')
+		row2.append('-')
+		row3.append('-')
+		row4.append(total_allow * 35)
+		row5.append('-')
+		row6.append('-')
 		data.append(row1)
 		data.append(row2)
 		data.append(row3)

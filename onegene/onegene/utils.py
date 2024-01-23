@@ -2,6 +2,8 @@ import frappe
 import requests
 from datetime import date
 import erpnext
+from frappe.model.naming import parse_naming_series
+import re
 import json
 from frappe import throw,_
 from frappe.utils import flt
@@ -191,5 +193,207 @@ def mat_req_item(item):
 	# if i > 0:
 	return data
 
-	
-	
+@frappe.whitelist()
+def set_naming(employee_category, designation,department,contractor,contractor_shortcode):
+	if employee_category != "Contractor":
+		if frappe.db.exists("Employee", {'employee_category': employee_category, 'designation': designation}):
+			if department != 'Driver - WAIP':
+				query = frappe.db.sql("""
+					SELECT name 
+					FROM `tabEmployee` 
+					WHERE employee_category = %s AND designation = %s AND department != 'Driver - WAIP'
+					ORDER BY name DESC
+				""", (employee_category, designation), as_dict=True)
+			elif department == 'Driver - WAIP':
+				query= frappe.db.sql("""
+					SELECT name 
+					FROM `tabEmployee` 
+					WHERE employee_category = %s AND designation = %s 
+					ORDER BY name DESC
+				""", (employee_category, designation), as_dict=True)
+			if query:
+				input_string = query[0]['name']
+				match = re.search(r'(\d+)$', input_string)
+			if match:
+				number = match.group(1)
+				leng = int(number) + 1
+				str_len = str(leng)
+				lengt = len(str_len)
+				ty = str(lengt)
+				if ty == "4":
+					if employee_category=='Apprentice' and designation=='Apprentice':
+						code = 'AN' + str(leng)
+					if employee_category == 'Staff' or 'SUB STAFF':
+						code = 'S' + str(leng)
+					if employee_category == 'Operators' and designation == 'Operator':
+						code = 'H' + '00' + str(leng)
+					if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+						code = 'DR' + str(leng)
+					if employee_category == 'Staff' and designation == 'General Manager':
+						code = 'KR' + str(leng)
+					if employee_category == 'Operators' and designation == 'Driver':
+						code = 'DR'  + str(leng)
+				elif ty == "3":
+					if employee_category == 'Staff' :
+						code = 'S' + '0' + str(leng)
+					if employee_category == 'SUB STAFF':
+						code = 'S' + '0' + str(leng)
+					if employee_category == 'Staff' and designation == 'General Manager':
+						code = 'KR' + str(leng)
+					if employee_category == 'Operators' and designation == 'Driver':
+						code = 'DR' + '0' + str(leng)
+				elif ty == "2":
+					if employee_category == 'Staff' and designation == 'General Manager':
+						code = 'KR'   + '00' + str(leng)
+					if employee_category == 'Operators' and designation == 'Driver':
+						code = 'DR'  + '00' + str(leng)
+					if employee_category == 'Operators' and designation == 'Driver':
+						code = 'DR'  + '0' + str(leng) 
+				elif ty == "1":
+					if employee_category == 'Operators' and designation == 'Operator':
+						code = 'H' + '000' + str(leng)
+					if employee_category == 'Staff' and  employee_category == 'SUB STAFF':
+						code = 'S' + '000' + str(leng)
+					if employee_category == 'Staff' and designation == 'General Manager':
+						code = 'KR'   + '00' + str(leng)
+					if employee_category == 'DIRECTOR':
+						if designation == 'SMD':
+							code =  "SMD" + '0' + str(leng)
+						if designation == "CMD":
+							code =  "CMD" + '0' + str(leng)
+						if designation == "BMD":
+							code =  "BMD" + '0' + str(leng)
+				else:
+					code = str(leng) 
+		else:
+			code =  "0001"
+	else:
+		if frappe.db.exists("Employee", {'employee_category': employee_category , 'contractor' : contractor}):
+			query = frappe.db.sql("""
+				SELECT name 
+				FROM `tabEmployee` 
+				WHERE employee_category = %s
+				AND contractor = %s
+				ORDER BY name DESC
+			""", (employee_category,contractor), as_dict=True)
+			if query:
+				input_string = query[0]['name']
+				match = re.search(r'(\d+)$', input_string)
+				if match:
+					number = match.group(1)
+					leng = int(number) + 1
+					str_len = str(leng)
+					lengt = len(str_len)
+					ty = str(lengt)
+					if ty == "4":
+						code == contractor_shortcode + str(leng)
+					elif ty == "3":
+						code == contractor_shortcode + "0" + str(leng)
+					elif ty == "2":
+						code == contractor_shortcode + "00" + str(leng)
+					elif ty == "1":
+						code == contractor_shortcode + "000" + str(leng)
+		else:
+			code == contractor_shortcode + "0001"
+
+		return code
+
+# @frappe.whitelist()
+# def set_naming(employee_category, designation,department,contractor,contractor_shortcode):
+#     if employee_category not in ["Contractor","Director"]:
+#         if frappe.db.exists("Employee", {'employee_category': employee_category}):
+#             if department != 'Driver - WAIP':
+#                 query = frappe.db.sql("""
+#                     SELECT name 
+#                     FROM `tabEmployee` 
+#                     WHERE employee_category = %s AND department != 'Driver - WAIP'
+#                     ORDER BY name DESC
+#                 """, (employee_category, designation), as_dict=True)
+#             elif department == 'Driver - WAIP':
+#                 query= frappe.db.sql("""
+#                     SELECT name 
+#                     FROM `tabEmployee` 
+#                     WHERE employee_category = %s AND department == 'Driver - WAIP'
+#                     ORDER BY name DESC
+#             """, (employee_category, designation), as_dict=True)
+#             if query:
+#                 input_string = query[0]['name']
+#                 match = re.search(r'(\d+)$', input_string)
+#             if match:
+#                 number = match.group(1)
+#                 leng = int(number) + 1
+#                 str_len = str(leng)
+#                 lengt = len(str_len)
+#                 ty = str(lengt)
+#                 if ty == "4":
+#                     if employee_category=='Apprentice' and designation=='Apprentice':
+#                         code = 'AN' + str(leng)
+#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+#                         code = 'DR' + str(leng)
+#                     if employee_category == 'Staff' or 'SUB STAFF':
+#                         if designation != 'General Manager':
+#                             code = 'S' + str(leng)
+#                         elif designation == 'General Manager':
+#                             code = 'KR' + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Operator':
+#                         code = 'H'  + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Driver':
+#                         code = 'DR'  + str(leng)
+#                 elif ty == "3":
+#                     if employee_category=='Apprentice' and designation=='Apprentice':
+#                         code = 'AN' + "0" + str(leng)
+#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+#                         code = 'DR' + "0" + str(leng)
+#                     if employee_category == 'Staff' or 'SUB STAFF':
+#                         if designation != 'General Manager':
+#                             code = 'S' + "0" + str(leng)
+#                         elif designation == 'General Manager':
+#                             code = 'KR' + "0" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Operator':
+#                         code = 'H'  + "0" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Driver':
+#                         code = 'DR'  + "0" + str(leng)
+#                 elif ty == "2":
+#                     if employee_category=='Apprentice' and designation=='Apprentice':
+#                         code = 'AN' + "00" + str(leng)
+#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+#                         code = 'DR' + "00" + str(leng)
+#                     if employee_category == 'Staff' or 'SUB STAFF':
+#                         if designation != 'General Manager':
+#                             code = 'S' + "00" + str(leng)
+#                         elif designation == 'General Manager':
+#                             code = 'KR' + "00" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Operator':
+#                         code = 'H'  + "00" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Driver':
+#                         code = 'DR'  + "00" + str(leng)
+#                 elif ty == "1":
+#                     if employee_category=='Apprentice' and designation=='Apprentice':
+#                         code = 'AN' + "000" + str(leng)
+#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+#                         code = 'DR' + "000" + str(leng)
+#                     if employee_category == 'Staff' or 'SUB STAFF':
+#                         if designation != 'General Manager':
+#                             code = 'S' + "000" + str(leng)
+#                         elif designation == 'General Manager':
+#                             code = 'KR' + "000" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Operator':
+#                         code = 'H'  + "000" + str(leng)
+#                     if employee_category == 'Operators' and designation == 'Driver':
+#                         code = 'DR'  + "000" + str(leng)
+#         else:
+#             if employee_category=='Apprentice' and designation=='Apprentice':
+#                 code = 'AN' + "000" + str(leng)
+#             if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+#                 code = 'DR' + "000" + str(leng)
+#             if employee_category == 'Staff' or 'SUB STAFF':
+#                 if designation != 'General Manager':
+#                     code = 'S' + "000" + str(leng)
+#                 elif designation == 'General Manager':
+#                     code = 'KR' + "000" + str(leng)
+#             if employee_category == 'Operators' and designation == 'Operator':
+#                 code = 'H'  + "000" + str(leng)
+#             if employee_category == 'Operators' and designation == 'Driver':
+#                 code = 'DR'  + "000" + str(leng)
+#     return code
+
