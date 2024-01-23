@@ -27,7 +27,7 @@ def get_columns(filters):
 		date = datetime.strptime(date,'%Y-%m-%d')
 		day = datetime.date(date).strftime('%d')
 		month = datetime.date(date).strftime('%b')
-		columns.append(_(day + '/' + month) + ":Data/:70")
+		columns.append(_(day + '/' + month) + ":Data/:100")
 	columns.append(_("Present") + ":Data/:100")
 	columns.append(_('Half Day') +':Data/:100')
 	columns.append(_('On Duty') + ':Data/:100')
@@ -75,84 +75,71 @@ def get_data(filters):
 				out_time = att.out_time
 				working_hours = att.custom_total_working_hours
 				overtime_hours = att.custom_overtime_hours
-				if status:
-					if status == "Present":
-						if shift =="3" or shift == "5":
-							total_allow +=1
-						else:
-							total_allow +=0
-					elif status == "Half Day":
-						if shift =="3" or shift == "5":
-							total_allow +=0.5
-						else:
-							total_allow +=0
+				if status == "Present":
+					if att.attendance_request is not None:
+						row1.append("OD")
+						total_od +=1
 					else:
-						total_allow +=0
-					if status == "Present":
-						if att.attendance_request is not None:
-							row1.append("OD")
-							total_od +=1
-						else:
-							row1.append("P")
-							total_present+=1
-					elif status == "Absent":
-						row1.append("A")
-						total_absent+=1
-					elif status == "Half Day":
-						row1.append("HD")
-						total_half_day+=1
-					elif status=="Work From Home":
-						row1.append("WFH")
+						row1.append("P")
 						total_present+=1
-					elif status=="On Leave":
-						leave=frappe.db.get_value("Leave Application",{"employee":emp.name,"from_date":date},["Leave_type"])
-						if leave=="Menstruation Leave":
-							row1.append("MSL")
-							total_paid_leave+=1
-						if leave=="Half-day leave":
-							row1.append("HDL")
-							total_paid_leave+=0.5
-						if leave=="Bereavement leave":
-							row1.append("BL")
-							total_paid_leave+=1
-						if leave=="Sabbatical Leave":
-							row1.append("SBL")
-							total_paid_leave+=1
-						if leave=="Marriage leave":
-							row1.append("ML")
-							total_paid_leave+=1
-						if leave=="Paternity leaves":
-							row1.append("PL")
-							total_paid_leave+=1
-						if leave=="Maternity leave":
-							row1.append("MTL")
-							total_paid_leave+=1
-						if leave=="Leave Without Pay":
-							row1.append("LOP")
-							total_lop+=1
-						if leave=="Privilege Leave":
-							row1.append("PVL")
-							total_paid_leave+=1
-						if leave=="Sick Leave":
-							row1.append("SL")
-							total_paid_leave+=1
-						if leave=="Compensatory Off":
-							row1.append("C-OFF")
-							total_combo_off+=1
-						if leave=="Casual Leave":
-							row1.append("CL")
-							total_paid_leave+=1
-					else:
-						hh = check_holiday(date,emp.name)
-						if hh:
-							if hh == 'WW':
-								row1.append(hh)
-								total_weekoff +=1
-							elif hh == 'HH':
-								row1.append(hh)
-								total_holiday +=1
-						else:
-							row1.append("-")
+				elif status == "Absent":
+					row1.append("A")
+					total_absent+=1
+				elif status == "Half Day":
+					row1.append("HD")
+					total_half_day+=1
+				elif status=="Work From Home":
+					row1.append("WFH")
+					total_present+=1
+				elif status=="On Leave":
+					leave=frappe.db.get_value("Leave Application",{"employee":emp.name,"from_date":date},["Leave_type"])
+					if leave=="Menstruation Leave":
+						row1.append("MSL")
+						total_paid_leave+=1
+					if leave=="Half-day leave":
+						row1.append("HDL")
+						total_paid_leave+=0.5
+					if leave=="Bereavement leave":
+						row1.append("BL")
+						total_paid_leave+=1
+					if leave=="Sabbatical Leave":
+						row1.append("SBL")
+						total_paid_leave+=1
+					if leave=="Marriage leave":
+						row1.append("ML")
+						total_paid_leave+=1
+					if leave=="Paternity leaves":
+						row1.append("PL")
+						total_paid_leave+=1
+					if leave=="Maternity leave":
+						row1.append("MTL")
+						total_paid_leave+=1
+					if leave=="Leave Without Pay":
+						row1.append("LOP")
+						total_lop+=1
+					if leave=="Privilege Leave":
+						row1.append("PVL")
+						total_paid_leave+=1
+					if leave=="Sick Leave":
+						row1.append("SL")
+						total_paid_leave+=1
+					if leave=="Compensatory Off":
+						row1.append("C-OFF")
+						total_combo_off+=1
+					if leave=="Casual Leave":
+						row1.append("CL")
+						total_paid_leave+=1
+					# else:
+					# 	hh = check_holiday(date,emp.name)
+					# 	if hh:
+					# 		if hh == 'WW':
+					# 			row1.append(hh)
+					# 			total_weekoff +=1
+					# 		elif hh == 'HH':
+					# 			row1.append(hh)
+					# 			total_holiday +=1
+					# 	else:
+					# 		row1.append("-")
 				
 				if in_time is not None:
 					in_tim = in_time.strftime('%H:%M:%S')

@@ -44,7 +44,7 @@ frappe.ui.form.on("Download Salary Slip", {
 	},
     download(frm) {
 		if (frm.doc.employee_id && frm.doc.month && frm.doc.year && frm.doc.salary_slip) {
-            if (frm.doc.employee_category == "Operators"){
+            if (frm.doc.employee_category == "Operator"){
                 var f_name = frm.doc.salary_slip;
                 var print_format ="PAYSLIP - Operators";
                 window.open(frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
