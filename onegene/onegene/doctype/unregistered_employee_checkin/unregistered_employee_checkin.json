@@ -10,7 +10,8 @@
   "time",
   "column_break_redu",
   "location__device_id",
-  "log_type"
+  "log_type",
+  "checkin_date"
  ],
  "fields": [
   {
@@ -37,12 +38,18 @@
    "fieldtype": "Select",
    "label": "Log Type",
    "options": "\nIN\nOUT"
+  },
+  {
+   "fieldname": "checkin_date",
+   "fieldtype": "Date",
+   "label": "Checkin Date",
+   "read_only": 1
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-01-02 13:14:26.082726",
+ "modified": "2024-01-31 07:45:57.794447",
  "modified_by": "Administrator",
  "module": "ONEGENE",
  "name": "Unregistered Employee Checkin",

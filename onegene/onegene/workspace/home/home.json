@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"0RuMgnACNo\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"BOM\",\"col\":3}},{\"id\":\"UMkCugq_8B\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Order\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"hbpiG1kVNO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"Fbgco7zyBq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Work Order\",\"col\":3}},{\"id\":\"z6MZACH842\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Entry\",\"col\":3}},{\"id\":\"6W7DYUPsTQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"GAzpHWZpOW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item Group\",\"col\":3}},{\"id\":\"uHaQLdUaHq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item Type\",\"col\":3}},{\"id\":\"P0cLS7XFWN\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier Group\",\"col\":3}},{\"id\":\"ND5gZWFNGG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Group\",\"col\":3}},{\"id\":\"QrXk2rzud4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"UOM\",\"col\":3}},{\"id\":\"EWk_WA4O2H\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse\",\"col\":3}},{\"id\":\"AtTVh_HeTF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operation\",\"col\":3}},{\"id\":\"gCto8GZEHm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kanban Quantity\",\"col\":3}},{\"id\":\"IzS66kVNce\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kanban Quantity Settings\",\"col\":3}},{\"id\":\"8leecfuWI0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rejection Reason\",\"col\":3}},{\"id\":\"uV1tb4PiIx\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rework Reason\",\"col\":3}},{\"id\":\"n9OgXaSEAg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Order Schedule Settings\",\"col\":3}},{\"id\":\"b6EfifCe-z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Order Schedule\",\"col\":3}},{\"id\":\"qPDnRKZfqb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan Settings\",\"col\":3}},{\"id\":\"NjeGF5952y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan\",\"col\":3}},{\"id\":\"Xg9x4GvNrP\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan Report\",\"col\":3}},{\"id\":\"xneR8O5ri_\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Requirements Planning\",\"col\":3}},{\"id\":\"XhaTsDbCBK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Requested Items To Be Transferred\",\"col\":3}},{\"id\":\"TLYsmLqr0n\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Requested Items to Order and Receive\",\"col\":3}},{\"id\":\"mrli46LQp1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Schedule Settings\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
+ "content": "[{\"id\":\"kb3XPLg8lb\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Shortcuts</span>\",\"col\":12}},{\"id\":\"nWd2KJPW8l\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item\",\"col\":3}},{\"id\":\"0RuMgnACNo\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"BOM\",\"col\":3}},{\"id\":\"UMkCugq_8B\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Order\",\"col\":3}},{\"id\":\"CPxEyhaf3G\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"hbpiG1kVNO\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier\",\"col\":3}},{\"id\":\"snrzfbFr5Y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer\",\"col\":3}},{\"id\":\"Fbgco7zyBq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Work Order\",\"col\":3}},{\"id\":\"z6MZACH842\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Stock Entry\",\"col\":3}},{\"id\":\"6W7DYUPsTQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Request\",\"col\":3}},{\"id\":\"GAzpHWZpOW\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item Group\",\"col\":3}},{\"id\":\"uHaQLdUaHq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Item Type\",\"col\":3}},{\"id\":\"P0cLS7XFWN\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Supplier Group\",\"col\":3}},{\"id\":\"ND5gZWFNGG\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Customer Group\",\"col\":3}},{\"id\":\"QrXk2rzud4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"UOM\",\"col\":3}},{\"id\":\"EWk_WA4O2H\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Warehouse\",\"col\":3}},{\"id\":\"AtTVh_HeTF\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Operation\",\"col\":3}},{\"id\":\"gCto8GZEHm\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kanban Quantity\",\"col\":3}},{\"id\":\"IzS66kVNce\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Kanban Quantity Settings\",\"col\":3}},{\"id\":\"8leecfuWI0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rejection Reason\",\"col\":3}},{\"id\":\"uV1tb4PiIx\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Rework Reason\",\"col\":3}},{\"id\":\"n9OgXaSEAg\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Order Schedule Settings\",\"col\":3}},{\"id\":\"b6EfifCe-z\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Order Schedule\",\"col\":3}},{\"id\":\"qPDnRKZfqb\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan Settings\",\"col\":3}},{\"id\":\"NjeGF5952y\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan\",\"col\":3}},{\"id\":\"Xg9x4GvNrP\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Production Plan Report\",\"col\":3}},{\"id\":\"xneR8O5ri_\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Material Requirements Planning\",\"col\":3}},{\"id\":\"XhaTsDbCBK\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Requested Items To Be Transferred\",\"col\":3}},{\"id\":\"TLYsmLqr0n\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Requested Items to Order and Receive\",\"col\":3}},{\"id\":\"mrli46LQp1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Schedule Settings\",\"col\":3}},{\"id\":\"4uODbqDcE_\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Bulk Compensation Allocation\",\"col\":3}},{\"id\":\"d_KVM1gsf9\",\"type\":\"spacer\",\"data\":{\"col\":12}}]",
  "creation": "2020-01-23 13:46:38.833076",
  "custom_blocks": [],
  "docstatus": 0,
@@ -200,8 +200,8 @@
    "type": "Link"
   }
  ],
- "modified": "2024-01-12 07:15:38.207316",
- "modified_by": "Administrator",
+ "modified": "2024-09-02 16:15:50.827259",
+ "modified_by": "gifty.p@groupteampro.com",
  "module": "ONEGENE",
  "name": "Home",
  "number_cards": [],
@@ -215,7 +215,7 @@
    "role": "System Manager"
   }
  ],
- "sequence_id": 2.0,
+ "sequence_id": 3.0,
  "shortcuts": [
   {
    "color": "Red",
@@ -231,6 +231,14 @@
    "label": "Order Schedule",
    "link_to": "Order Schedule",
    "stats_filter": "[[\"Order Schedule\",\"schedule_date\",\"Timespan\",\"this month\",false]]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Bulk Compensation Allocation",
+   "link_to": "Bulk Compensation Off Option",
+   "stats_filter": "[]",
    "type": "DocType"
   },
   {

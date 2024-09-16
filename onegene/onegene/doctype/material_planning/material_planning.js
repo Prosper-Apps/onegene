@@ -5,7 +5,7 @@ frappe.ui.form.on("Material Planning", {
     billing_item_stock(frm){
         $.each(frm.doc.order_schedule,function(i,j){
             frappe.call({
-                method:"onegene.onegene.custom.get_all_stock",
+                method:"onegene.onegene.doctype.material_planning.material_planning.get_all_stock",
                 args:{
                     'item':j.item_code
                 },
@@ -85,7 +85,7 @@ frappe.ui.form.on("Material Planning", {
     months(frm){
         $.each(frm.doc.order_schedule,function(i,k){
             frappe.call({
-                method:"onegene.onegene.custom.return_mr_qty",
+                method:"onegene.onegene.doctype.material_planning.material_planning.return_mr_qty",
                 args:{
                     "order_schedule":k.order_schedule,
                     "months":frm.doc.months
@@ -104,7 +104,7 @@ frappe.ui.form.on("Material Planning", {
     onload(frm){
         frm.clear_table('material_request')
         frappe.call({
-            method:"onegene.onegene.custom.return_month_date",
+            method:"onegene.onegene.doctype.material_planning.material_planning.return_month_date",
             callback(r){
                 if(r.message){
                     frm.set_value("from_date",r.message[0])
@@ -120,7 +120,7 @@ frappe.ui.form.on("Material Planning", {
         frm.clear_table('order_schedule')
         if(frm.doc.billing_item_stock){
             frappe.call({
-                method:"onegene.onegene.custom.get_all_order_type",
+                method:"onegene.onegene.doctype.material_planning.material_planning.get_all_order_type",
                 args:{
                     'customer':frm.doc.customer,
                     'from_date':frm.doc.from_date,
@@ -154,7 +154,7 @@ frappe.ui.form.on("Material Planning", {
         }
         else{
             frappe.call({
-                method:"onegene.onegene.custom.get_all_order_type",
+                method:"onegene.onegene.doctype.material_planning.material_planning.get_all_order_type",
                 args:{
                     'customer':frm.doc.customer,
                     'from_date':frm.doc.from_date,

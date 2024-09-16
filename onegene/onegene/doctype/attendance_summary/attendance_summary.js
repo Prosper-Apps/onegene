@@ -3,63 +3,92 @@
 
 frappe.ui.form.on("Attendance Summary", {
 	refresh(frm) {
-        frm.disable_save()
-        if (!frappe.user.has_role('System Manager')) {
-			frappe.db.get_value("Employee",{'user_id':frappe.session.user},['department'], (r) => {
+		if(frappe.session.user != 'Administrator') {
+			frm.set_df_property('from_date','hidden',1)
+			frm.set_df_property('to_date','hidden',1)
+        }
+		var currentDate = new Date();
+		var currentYear = currentDate.getFullYear();
+		var currentMonth = currentDate.getMonth() + 1; 
+		var months = [
+			"January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December"
+		];
+		var monthName = months[currentMonth - 1]; 
+		frm.set_value('month', monthName);
+		frm.set_value('year', currentYear);
+		frm.disable_save();
+		if (!frappe.user.has_role('System Manager') && !frappe.user.has_role('HOD') && !frappe.user.has_role('HR Manager') && !frappe.user.has_role('HR User')) {
+			frappe.db.get_value("Employee", {'user_id': frappe.session.user}, ['employee', 'employee_name'], (r) => {
 				if (r){
-					frm.set_query('employee_id', function(doc) {
-						return {
-							filters: {
-								"status": "Active",
-								"department" : r.department
-							}
-						};
-					})
+					frm.set_value('employee_id', r.employee);
+					frm.set_value('employee_name', r.employee_name);
 				}
 			});
+			frm.set_df_property('employee_id','read_only',1)
 		}
-        frappe.db.get_value("Employee",{'user_id':frappe.session.user},['employee','employee_name'], (r) => {
-			if (r){
-				frm.set_value('employee_id',r.employee)
-				frm.set_value('employee_name',r.employee_name)
-			}
-		})
-        frm.set_value('from_date', frappe.datetime.month_start());
-        frm.set_value('to_date', frappe.datetime.add_days(frappe.datetime.add_days(frappe.datetime.month_end(), 1), -1));
-	},
-
+		frm.trigger('get_from_to_dates')
+    },
     onload(frm){
-		if (!frappe.user.has_role('System Manager')) {
-			frappe.db.get_value("Employee",{'user_id':frappe.session.user},['department'], (r) => {
+		if(frappe.session.user != 'Administrator') {
+			frm.set_df_property('from_date','hidden',1)
+			frm.set_df_property('to_date','hidden',1)
+        }
+		var currentDate = new Date();
+		var currentYear = currentDate.getFullYear();
+		var currentMonth = currentDate.getMonth() + 1; 
+		var months = [
+			"January", "February", "March", "April", "May", "June",
+			"July", "August", "September", "October", "November", "December"
+		];
+		var monthName = months[currentMonth - 1]; 
+		frm.set_value('month', monthName);
+		frm.set_value('year', currentYear);
+		frm.disable_save();
+		if (!frappe.user.has_role('System Manager') && !frappe.user.has_role('HOD') && !frappe.user.has_role('HR Manager') && !frappe.user.has_role('HR User')) {
+			frappe.db.get_value("Employee", {'user_id': frappe.session.user}, ['employee', 'employee_name'], (r) => {
 				if (r){
-					console.log(r.department)
-					frm.set_query('employee_id', function(doc) {
-						return {
-							filters: {
-								"status": "Active",
-								"department" : r.department
-							}
-						};
-					})
+					frm.set_value('employee_id', r.employee);
+					frm.set_value('employee_name', r.employee_name);
 				}
 			});
+			frm.set_df_property('employee_id','read_only',1)
 		}
-        frappe.db.get_value("Employee",{'user_id':frappe.session.user},['employee','employee_name'], (r) => {
-			if (r){
-				frm.set_value('employee_id',r.employee)
-				frm.set_value('employee_name',r.employee_name)
-			}
-		})
+		frm.trigger('get_from_to_dates')
 	},
-
     employee_id(frm){
+		frm.trigger('get_from_to_dates')
 		frm.trigger('get_data')
+	},
+	year(frm){
+		frm.trigger('get_from_to_dates')
+	},
+	month(frm){
+		frm.trigger('get_from_to_dates')
 	},
 	from_date(frm){
 		frm.trigger('get_data')
 	},
 	to_date(frm){
 		frm.trigger('get_data')
+	},
+	get_from_to_dates(frm){
+		frappe.call({
+			"method": "onegene.onegene.doctype.attendance_summary.attendance_summary.get_from_to_dates",
+			"args":{
+				"month" : frm.doc.month,
+				"year" : frm.doc.year
+			},
+			callback(r){
+				// console.log(r.message)
+				if(r.message){
+					// console.log(r.message)
+					frm.set_value('from_date', r.message[0]);
+					frm.set_value('to_date', r.message[1]);
+				}
+			}
+		})
+
 	},
     get_data: function (frm) {
 		if (frm.doc.from_date && frm.doc.to_date && frm.doc.employee_id) {

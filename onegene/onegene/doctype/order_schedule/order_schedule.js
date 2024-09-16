@@ -6,7 +6,7 @@ frappe.ui.form.on('Order Schedule', {
 		if(frm.doc.sales_order_number){
 			var list = []
 			frappe.call({
-				method:"onegene.onegene.custom.return_items",
+				method:"onegene.onegene.doctype.order_schedule.order_schedule.return_items",
 				args:{
 					doctype:"Sales Order",
 					docname:frm.doc.sales_order_number

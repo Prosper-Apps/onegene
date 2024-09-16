@@ -20,7 +20,12 @@ def execute(filters=None):
 def get_columns(filters):
 	columns = []
 	columns += [
-		_("Employee ID") + ":Data/:150",_("Employee Name") + ":Data/:200",_('Employee Category') +':Data:100',_("Department") + ":Data/:150",_("DOJ") + ":Date/:100",_("Status") + ":Data/:150",
+		_("Employee ID") + ":Data/:150",
+		_("Employee Name") + ":Data/:200",
+		_('Employee Category') +':Data:100',
+		_("Department") + ":Data/:150",
+		_("DOJ") + ":Date/:100",
+		_("Status") + ":Data/:150",
 	]
 	dates = get_dates(filters.from_date,filters.to_date)
 	for date in dates:
@@ -67,80 +72,125 @@ def get_data(filters):
 		total_combo_off = 0
 		total_allow = 0
 		for date in dates:
-			if frappe.db.exists("Attendance",{'attendance_date':date,'employee':emp.name,'docstatus':('!=','2')}):
+			att = frappe.db.get_value("Attendance",{'attendance_date':date,'employee':emp.name,'docstatus':('!=','2')},['status','in_time','out_time','shift','employee','attendance_date','custom_total_working_hours','custom_overtime_hours','custom_late_entry_time','leave_type','custom_early_out_time','late_entry','early_exit','custom_employee_category']) or ''
+			if att:
 				att = frappe.get_doc("Attendance",{'attendance_date':date,'employee':emp.name,'docstatus':('!=','2')})
 				status =att.status
 				shift = att.shift
 				in_time = att.in_time
 				out_time = att.out_time
-				working_hours = att.custom_total_working_hours
+				working_hours = att.custom_total_working_hours 
 				overtime_hours = att.custom_overtime_hours
 				if status == "Present":
-					if att.attendance_request is not None:
-						row1.append("OD")
-						total_od +=1
+					if att.custom_employee_category == "Staff" and att.custom_designation not in ["Deputy General Manager","BMD","CMD","SMD","Asst General Manager","Senior Manager","Safety Officer","General Manager","Deputy Manager","Asst Manager","Manager"]:
+						frappe.errprint(total_allow)
+						if shift =="3" or shift == "5":
+							total_allow +=1
+						else:
+							total_allow +=0   
+					elif att.custom_employee_category == "Operator":
+						if shift =="3" or shift == "5":
+							total_allow +=1
+						else:
+							total_allow +=0 
 					else:
-						row1.append("P")
-						total_present+=1
+						total_allow +=0
+					
+					hh = check_holiday(date,emp.name)
+					if hh :
+						if hh == 'WO':
+							row1.append('WO/P')
+						elif hh == 'NH':
+							row1.append('NH/P')   
+					else:  
+						if att.attendance_request is not None:
+							row1.append("OD")
+							total_od +=1
+						else:
+							row1.append("P")
+							total_present+=1
 				elif status == "Absent":
-					row1.append("A")
-					total_absent+=1
+					hh = check_holiday(date,emp.name)
+					if hh:
+						if hh == 'WO':
+							row1.append('WO/A')
+						elif hh == 'NH':
+							row1.append('NH/A')
+					else: 
+						row1.append("A") 
+						total_absent = total_absent + 1
 				elif status == "Half Day":
-					row1.append("HD")
+					hh = check_holiday(date,emp.name)
+					if att.custom_employee_category == "Staff" and att.custom_designation not in ["Deputy General Manager","BMD","CMD","SMD","Asst General Manager","Senior Manager","Safety Officer","General Manager","Deputy Manager","Asst Manager","Manager"]:
+						if shift =="3" or shift == "5":
+							total_allow += 0.5
+						else:
+							total_allow +=0   
+					elif att.custom_employee_category == "Operator":
+						if shift =="3" or shift == "5":
+							total_allow += 0.5
+						else:
+							total_allow +=0 
+					else:
+						total_allow +=0
+					if hh:
+						if hh == 'WO':
+							row1.append('WO/HD')
+						elif hh == 'NH':
+							row1.append('NH/HD')
+					else: 
+						row1.append("HD") 
 					total_half_day+=1
 				elif status=="Work From Home":
-					row1.append("WFH")
-					total_present+=1
+					hh = check_holiday(date,emp.name)
+					if hh:
+						if hh == 'WO':
+							row1.append('WO/WFH')
+						elif hh == 'NH':
+							row1.append('NH/WFH')
+					else: 
+						row1.append("WFH") 
+						total_present = total_present + 1
 				elif status=="On Leave":
-					leave=frappe.db.get_value("Leave Application",{"employee":emp.name,"from_date":date},["Leave_type"])
-					if leave=="Menstruation Leave":
+					if att.leave_type =="Menstruation Leave":
 						row1.append("MSL")
 						total_paid_leave+=1
-					if leave=="Half-day leave":
-						row1.append("HDL")
-						total_paid_leave+=0.5
-					if leave=="Bereavement leave":
+					if att.leave_type =="Bereavement leave":
 						row1.append("BL")
 						total_paid_leave+=1
-					if leave=="Sabbatical Leave":
+					if att.leave_type =="Sabbatical Leave":
 						row1.append("SBL")
 						total_paid_leave+=1
-					if leave=="Marriage leave":
+					if att.leave_type =="Marriage leave":
 						row1.append("ML")
 						total_paid_leave+=1
-					if leave=="Paternity leaves":
+					if att.leave_type =="Paternity leaves":
 						row1.append("PL")
 						total_paid_leave+=1
-					if leave=="Maternity leave":
+					if att.leave_type =="Maternity leave":
 						row1.append("MTL")
 						total_paid_leave+=1
-					if leave=="Leave Without Pay":
+					if att.leave_type =="Medical Leave":
+						row1.append("MDL")
+						total_paid_leave+=1
+					if att.leave_type =="Leave Without Pay":
 						row1.append("LOP")
 						total_lop+=1
-					if leave=="Privilege Leave":
+					if att.leave_type =="Privilege Leave":
 						row1.append("PVL")
 						total_paid_leave+=1
-					if leave=="Sick Leave":
+					if att.leave_type =="Sick Leave":
 						row1.append("SL")
 						total_paid_leave+=1
-					if leave=="Compensatory Off":
+					if att.leave_type =="Compensatory Off":
 						row1.append("C-OFF")
 						total_combo_off+=1
-					if leave=="Casual Leave":
+					if att.leave_type =="Casual Leave":
 						row1.append("CL")
 						total_paid_leave+=1
-					# else:
-					# 	hh = check_holiday(date,emp.name)
-					# 	if hh:
-					# 		if hh == 'WW':
-					# 			row1.append(hh)
-					# 			total_weekoff +=1
-					# 		elif hh == 'HH':
-					# 			row1.append(hh)
-					# 			total_holiday +=1
-					# 	else:
-					# 		row1.append("-")
-				
+					if att.leave_type =="Earned Leave":
+						row1.append("EL")
+						total_paid_leave+=1
 				if in_time is not None:
 					in_tim = in_time.strftime('%H:%M:%S')
 				else:
@@ -176,113 +226,43 @@ def get_data(filters):
 						row8.append('-')
 				else:
 					row4.append("-")
-				if working_hours is not None:
-					w_hrs = working_hours
-					row5.append(w_hrs)
-				else:
 					row5.append("-")
 					row6.append("-")
 					row7.append('-')
 					row8.append('-')
 			else:
-				row1.append("-")
-				row2.append('-')
-				row3.append('-')
-				row4.append('-')
-				row5.append('-')
-				row6.append('-')
-				row7.append('-')
-				row8.append('-')
-		row1.append(total_present)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_half_day)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_od)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_absent)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_weekoff)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_holiday)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_paid_leave)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_lop)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_combo_off)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row7.append('-')
-		row8.append('-')
-		row1.append(total_ot)
-		row2.append('-')
-		row3.append('-')
-		row4.append('-')
-		row5.append('-')
-		row6.append('-')
-		row1.append('-')
-		row2.append('-')
-		row3.append('-')
-		row4.append(total_allow)
-		row5.append('-')
-		row6.append('-')
-		row1.append('-')
-		row2.append('-')
-		row3.append('-')
-		row4.append(total_allow * 35)
-		row5.append('-')
-		row6.append('-')
+				hh = check_holiday(date,emp.name)
+				if hh :
+					if hh == 'WO': 
+						total_weekoff += 1
+					elif hh == 'NH':
+						total_holiday += 1
+					row1.append(hh)
+					row2.append('-')
+					row3.append('-')
+					row4.append(hh)
+					row5.append('-')
+					row6.append('-')
+					row7.append('-')
+					row8.append('-')
+				else:
+					row1.append('-')
+					row2.append('-')
+					row3.append('-')
+					row4.append('-')
+					row5.append('-')
+					row6.append('-')
+					row7.append('-')
+					row8.append('-')
+				
+		row1.extend([total_present,total_half_day,total_od,total_absent,total_weekoff,total_holiday,total_paid_leave,total_lop,total_combo_off,total_ot,total_allow,(total_allow * 35)])
+		row2.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row3.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row4.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row5.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row6.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row7.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
+		row8.extend(['-','-','-','-','-','-','-','-','-','-','-','-'])
 		data.append(row1)
 		data.append(row2)
 		data.append(row3)
@@ -305,48 +285,28 @@ def get_employees(filters):
 		conditions += "and employee = '%s' " % (filters.employee)
 	if filters.employee_category:
 		conditions += "and employee_category = '%s' " % (filters.employee_category)
-
-	employees = frappe.db.sql("""select name, employee_name, department,employee_category,date_of_joining from `tabEmployee` where status = 'Active' %s """ % (conditions), as_dict=True)
-	left_employees = frappe.db.sql("""select name, employee_name, department,employee_category, date_of_joining from `tabEmployee` where status = 'Left' and relieving_date >= '%s' %s """ %(filters.from_date,conditions),as_dict=True)
+	if filters.department:
+		conditions += "and department = '%s' " % (filters.department)
+	employees = frappe.db.sql("""select * from `tabEmployee` where status = 'Active' %s """ % (conditions), as_dict=True)
+	left_employees = frappe.db.sql("""select * from `tabEmployee` where status = 'Left' and relieving_date >= '%s' %s """ %(filters.from_date,conditions),as_dict=True)
 	employees.extend(left_employees)
 	return employees
-  
-# @frappe.whitelist()
-# def get_to_date(from_date):
-#     day = from_date[-2:]
-#     if int(day) > 21:
-#         d = add_days(get_last_day(from_date),21)
-#         return d
-#     if int(day) <= 21:
-#         d = add_days(get_first_day(from_date),21)
-#         return d
-
-# def check_holiday(date):
-#     holiday_list = frappe.db.get_value('Company','WONJIN AUTOPARTS INDIA PVT.LTD.')
-#     holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off from `tabHoliday List` 
-#     left join `tabHoliday` on `tabHoliday`.parent = `tabHoliday List`.name where `tabHoliday List`.name = '%s' and holiday_date = '%s' """%(holiday_list,date),as_dict=True)
-#     if holiday:
-#         if holiday[0].weekly_off == 1:
-#             return "WW"
-#         else:
-#             return "HH"
 		
 def check_holiday(date,emp):
 	holiday_list = frappe.db.get_value('Employee',{'name':emp},'holiday_list')
-	holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off,`tabHoliday`.others from `tabHoliday List` 
+	holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off from `tabHoliday List` 
 	left join `tabHoliday` on `tabHoliday`.parent = `tabHoliday List`.name where `tabHoliday List`.name = '%s' and holiday_date = '%s' """%(holiday_list,date),as_dict=True)
 	doj= frappe.db.get_value("Employee",{'name':emp},"date_of_joining")
 	status = ''
 	if holiday :
-		if doj < holiday[0].holiday_date:
+		if doj <= holiday[0].holiday_date:
 			if holiday[0].weekly_off == 1:
-				status = "WH"     
+				status = "WO"     
 			else:
-				status = "HH"
+				status = "NH"
 		else:
-			status = '*'
+			status = '-'
 	return status
-
 
 @frappe.whitelist()
 def get_to_date(from_date):

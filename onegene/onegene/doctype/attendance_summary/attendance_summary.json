@@ -9,6 +9,8 @@
   "employee_id",
   "employee_name",
   "column_break_zbcn",
+  "month",
+  "year",
   "from_date",
   "to_date",
   "section_break_xmrr",
@@ -53,13 +55,25 @@
    "fieldname": "html",
    "fieldtype": "HTML",
    "label": "HTML"
+  },
+  {
+   "fieldname": "month",
+   "fieldtype": "Select",
+   "label": "Month",
+   "options": "January\nFebruary\nMarch\nApril\nMay\nJune\nJuly\nAugust\nSeptember\nOctober\nNovember\nDecember"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Year"
   }
  ],
  "hide_toolbar": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-01-06 11:09:10.978635",
+ "modified": "2024-08-01 09:27:02.642111",
  "modified_by": "Administrator",
  "module": "ONEGENE",
  "name": "Attendance Summary",

@@ -11,7 +11,7 @@ frappe.listview_settings["Production Plan Report"] = {
 		},
 		action(doc) {
             frappe.call({
-                method: "onegene.onegene.custom.create_mrr",
+                method: "onegene.onegene.doctype.production_plan_report.production_plan_report.create_mrr",
                 args:{
                     name:doc.name
                 }
@@ -42,7 +42,7 @@ frappe.listview_settings["Production Plan Report"] = {
 			console.log(typeof(doc_name))
 
 			frappe.call({
-                method: "onegene.onegene.custom.create_mrr",
+                method: "onegene.onegene.doctype.production_plan_report.production_plan_report.create_mrr",
 				args:{
                     'name':doc_name
                 }
@@ -57,7 +57,7 @@ frappe.listview_settings["Production Plan Report"] = {
 			// console.log(typeof(doc_name))
 
 			// frappe.call({
-            //     method: "onegene.onegene.custom.create_mrr",
+            //     method: "onegene.onegene.doctype.production_plan_report.production_plan_report.create_mrr",
 			// 	args:{
             //         'name':doc_name
             //     }

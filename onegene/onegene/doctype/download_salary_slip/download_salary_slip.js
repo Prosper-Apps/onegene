@@ -3,6 +3,8 @@
 
 frappe.ui.form.on("Download Salary Slip", {
 	refresh(frm) {
+        var currentYear = new Date().getFullYear();
+        frm.set_value('year', currentYear);
         if (!frappe.user.has_role('System Manager')) {
 			frappe.db.get_value("Employee",{'user_id':frappe.session.user},['employee','employee_name','employee_category'], (r) => {
                 console.log(r.message)
@@ -24,6 +26,8 @@ frappe.ui.form.on("Download Salary Slip", {
 	},
 	year(frm) {
 		frm.trigger('get_slip')
+        var currentYear = new Date().getFullYear();
+        frm.set_value('year', currentYear);
 	},
 	employee_id(frm) {
 		frm.trigger('get_slip')
@@ -68,7 +72,7 @@ frappe.ui.form.on("Download Salary Slip", {
                     + "&letterhead=" + encodeURIComponent
             ));
             }
-            else if (frm.doc.employee_category == "SUB STAFF"){
+            else if (frm.doc.employee_category == "Sub Staff"){
                 var f_name = frm.doc.salary_slip;
                 var print_format ="PAYSLIP-Staff";
                 window.open(frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
@@ -84,14 +88,14 @@ frappe.ui.form.on("Download Salary Slip", {
                 frappe.call({
                     method:"frappe.client.get",
                     args:{
-                        doctype:"Salary Structure Assignment",
+                        doctype:"Employee",
                         filters:{"employee":frm.doc.employee_id},
-                        "fieldname": "salary_structure"
+                        "fieldname": "custom_pf_type"
                     },
                     callback(r){
-                        if (r.message.salary_structure=="Apperentice II-2023"){
+                        if (r.message.custom_pf_type=="With PF"){
                             var f_name = frm.doc.salary_slip;
-                            var print_format ="PAYSLIP - Apprentice";
+                            var print_format ="PAYSLIP - Apprentice PF";
                             window.open(frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
                                     + "doctype=" + encodeURIComponent("Salary Slip")
                                     + "&name=" + encodeURIComponent(f_name)
@@ -101,9 +105,9 @@ frappe.ui.form.on("Download Salary Slip", {
                                     + "&letterhead=" + encodeURIComponent
                             ));
                         }
-                        else if (r.message.salary_structure=="Apperentice-with PF-2023"){
+                        else if (r.message.custom_pf_type=="Without PF"){
                             var f_name = frm.doc.salary_slip;
-                            var print_format ="PAYSLIP - Apprentice PF";
+                            var print_format ="PAYSLIP - Apprentice";
                             window.open(frappe.urllib.get_full_url("/api/method/frappe.utils.print_format.download_pdf?"
                                 + "doctype=" + encodeURIComponent("Salary Slip")
                                 + "&name=" + encodeURIComponent(f_name)

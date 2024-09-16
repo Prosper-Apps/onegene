@@ -38,7 +38,7 @@ def get_data(filters):
     for s in os:
         bom = frappe.db.get_value("BOM", {'item': s.item_code}, ['name'])
         bom_list.append({"bom": bom, "qty": s.qty,'sch_date':s.schedule_date, 'order_schedule':s.name})
-
+    frappe.log_error(title='cons',message=consolidated_items)
     for k in bom_list:
         exploded_data = []
         

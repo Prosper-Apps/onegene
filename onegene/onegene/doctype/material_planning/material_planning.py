@@ -13,7 +13,19 @@ from frappe.utils import (
     today,
 )
 from frappe.model.document import Document
-
+import frappe
+import requests
+from datetime import date
+import erpnext
+import json
+from frappe.utils import now
+from frappe import throw,_
+from frappe.utils import flt
+from frappe.utils import cstr, cint, getdate, get_last_day, get_first_day, add_days,date_diff
+from datetime import date, datetime, timedelta
+import datetime as dt
+from datetime import datetime, timedelta
+from typing import Dict, Optional, Tuple, Union
 
 class MaterialPlanning(Document):
     pass
@@ -162,4 +174,43 @@ def get_exploded_items(bom, data, qty, skip_list):
         })
         if item['bom_no']:
             get_exploded_items(item['bom_no'], data, qty=item_qty, skip_list=skip_list)
+
+@frappe.whitelist()
+def get_all_stock(item):
+    stock  = frappe.db.sql(""" select sum(actual_qty) as qty from `tabBin` where item_code = '%s' """%(item),as_dict = 1)
+    return stock
+
+@frappe.whitelist()
+def get_all_order_type(customer,from_date,to_date):
+    list = []
+    dict = []
+    if customer:
+        os = frappe.db.get_list("Order Schedule",{"customer_name":customer,"schedule_date": ["between",  (from_date, to_date)]},['name','sales_order_number','customer_code','customer_name','item_code','qty'])
+    else:
+        os = frappe.db.get_list("Order Schedule",{"schedule_date": ["between",  (from_date, to_date)]},['name','sales_order_number','customer_code','customer_name','item_code','qty'])
+    for o in os:
+        stock = frappe.db.sql(""" select item_code,sum(actual_qty) as qty from `tabBin` where item_code = '%s' """%(o.item_code),as_dict = 1)[0]
+        if stock['qty']:
+            stock = stock['qty']
+        else:
+            stock = 0
+        dict = frappe._dict({'name':o.name,'sales_order_number':o.sales_order_number,'customer_code':o.customer_code,'customer_name':o.customer_name,'item_code':o.item_code,'qty':o.qty,'stock_qty':stock})
+        list.append(dict)
+    return list
+
+@frappe.whitelist()
+def return_month_date():
+    return get_first_day(today()),get_last_day(today())
+
+@frappe.whitelist()
+def return_mr_qty(order_schedule,months):
+    os_list = []
+    os = frappe.db.get_list("Order Schedule",{'name':order_schedule},['qty','tentative_plan_1','tentative_plan_2','tentative_plan_3'])
+    for o in os:
+        if months == '1':
+            return frappe._dict({"order_schedule": order_schedule, "qty": o.tentative_plan_1})
+        if months == '2':
+            return frappe._dict({"order_schedule": order_schedule, "qty": o.tentative_plan_2})
+        if months == '3':
+            return frappe._dict({"order_schedule": order_schedule, "qty": o.tentative_plan_3})
 

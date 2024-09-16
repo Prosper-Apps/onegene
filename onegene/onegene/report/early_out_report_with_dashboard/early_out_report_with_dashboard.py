@@ -94,13 +94,13 @@ def get_chart_data(filters) -> Dict:
 					custom_employee_category = frappe.get_value("Employee",{'name':att.employee},['employee_category'])
 					if custom_employee_category == "Contractor":
 						contractor_count += 1
-					elif custom_employee_category == "Contractor":
+					elif custom_employee_category == "Sub Staff":
 						staff1_count += 1
-					elif custom_employee_category == "SUB STAFF":
+					elif custom_employee_category == "Director":
 						director_count += 1
 					elif custom_employee_category == "Apprentice":
 						apprentice_count += 1
-					elif custom_employee_category == "Operators":
+					elif custom_employee_category == "Operator":
 						operators_count += 1
 					elif custom_employee_category == "Staff":
 						staff_count += 1
@@ -124,7 +124,7 @@ def get_chart_data(filters) -> Dict:
 			"labels": labels,
 			"datasets": [
 				{"name": "Contractor", "values": contractor_count1},
-				{"name": "SUB STAFF", "values": staff1_count1},
+				{"name": "Sub Staff", "values": staff1_count1},
 				{"name": "Director", "values": director_count1},
 				{"name": "Apprentice", "values": apprentice_count1},
 				{"name": "Operators", "values": operators_count1},

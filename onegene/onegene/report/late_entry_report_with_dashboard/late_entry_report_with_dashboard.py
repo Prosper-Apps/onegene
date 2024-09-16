@@ -15,7 +15,6 @@ from calendar import monthrange
 from frappe import _, msgprint
 from frappe.utils import flt
 from frappe.utils import getdate, cstr
-from datetime import datetime
 from frappe import _
 import datetime as dt
 from datetime import datetime, timedelta
@@ -39,9 +38,9 @@ def get_columns():
 		{"label": _("Department"), "fieldname": "department", "fieldtype": "Data", "width": 150},
 		{"label": _("Attendance Date"), "fieldname": "attendance_date", "fieldtype": "Data", "width": 150},
 		{"label": _("Shift"), "fieldname": "shift", "fieldtype": "Data", "width": 100},
-		{"label": _("Shift Time"), "fieldname": "shift_time", "fieldtype": "Data", "width": 120},
+		{"label": _("Shift Time + Grace"), "fieldname": "shift_time", "fieldtype": "Data", "width": 120},
 		{"label": _("In Time"), "fieldname": "in_time", "fieldtype": "Data", "width": 170},
-		{"label": _("Late Time"), "fieldname": "in_time", "fieldtype": "Data", "width": 170},
+		{"label": _("Late Time"), "fieldname": "out_time", "fieldtype": "Data", "width": 170},
 	]
 	return columns
 
@@ -49,15 +48,24 @@ def get_attendance(filters):
 	data = []
 	attendance = frappe.get_all('Attendance', {'attendance_date': ('between', (filters.from_date, filters.to_date))}, ['*'])
 	for att in attendance:
-		# frappe.errprint("HI")
 		if att.shift and att.in_time:
 			shift_time = frappe.get_value("Shift Type", {'name': att.shift}, ["start_time"])
 			shift_start_time = datetime.strptime(str(shift_time), '%H:%M:%S').time()
-			start_time = dt.datetime.combine(att.attendance_date,shift_start_time)
+			shift_start_time = (dt.datetime.combine(dt.date(1, 1, 1), shift_start_time) + dt.timedelta(minutes=5)).time()
+			start_time = dt.datetime.combine(att.attendance_date, shift_start_time)
 			if att.in_time > datetime.combine(att.attendance_date, shift_start_time):
-				row = [att.employee, att.employee_name,att.custom_employee_category, att.department, frappe.utils.data.format_date(att.attendance_date), att.shift, shift_start_time, att.in_time,att.in_time - start_time]
+				duration = att.in_time - start_time
+				row = [
+					att.employee, 
+					att.employee_name, 
+					att.department, 
+					frappe.utils.data.format_date(att.attendance_date), 
+					att.shift, 
+					shift_start_time, 
+					att.in_time,
+					duration
+				]
 				data.append(row)
-
 	return data
 
 def get_columns_for_days(filters) -> List[Dict]:
@@ -80,7 +88,7 @@ def get_chart_data(filters) -> Dict:
 	operators_count1 = []
 	staff_count1 = [] 
 	for day in days:
-		frappe.errprint(day)
+		# frappe.errprint(day)
 		labels.append(str(day))
 		attendance = frappe.get_all('Attendance', {'attendance_date': ('between', (filters.from_date, filters.to_date))}, ['*'])
 		contractor_count = 0
@@ -98,13 +106,13 @@ def get_chart_data(filters) -> Dict:
 					custom_employee_category = frappe.get_value("Employee",{'name':att.employee},['employee_category'])
 					if custom_employee_category == "Contractor":
 						contractor_count += 1
-					elif custom_employee_category == "Contractor":
+					elif custom_employee_category == "Sub Staff":
 						staff1_count += 1
-					elif custom_employee_category == "SUB STAFF":
+					elif custom_employee_category == "Director":
 						director_count += 1
 					elif custom_employee_category == "Apprentice":
 						apprentice_count += 1
-					elif custom_employee_category == "Operators":
+					elif custom_employee_category == "Operator":
 						operators_count += 1
 					elif custom_employee_category == "Staff":
 						staff_count += 1
@@ -116,19 +124,19 @@ def get_chart_data(filters) -> Dict:
 	operators_count1.append(operators_count)
 	staff_count1.append(staff_count)
 
-	frappe.errprint(contractor_count)
-	frappe.errprint(staff1_count)
-	frappe.errprint(director_count)
-	frappe.errprint(apprentice_count)
-	frappe.errprint(operators_count)
-	frappe.errprint(staff_count)
+	# frappe.errprint(contractor_count)
+	# frappe.errprint(staff1_count)
+	# frappe.errprint(director_count)
+	# frappe.errprint(apprentice_count)
+	# frappe.errprint(operators_count)
+	# frappe.errprint(staff_count)
 
 	return {
 		"data": {
 			"labels": labels,
 			"datasets": [
 				{"name": "Contractor", "values": contractor_count1},
-				{"name": "SUB STAFF", "values": staff1_count1},
+				{"name": "Sub Staff", "values": staff1_count1},
 				{"name": "Director", "values": director_count1},
 				{"name": "Apprentice", "values": apprentice_count1},
 				{"name": "Operators", "values": operators_count1},

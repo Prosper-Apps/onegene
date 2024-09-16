@@ -36,7 +36,7 @@ def get_columns():
 
 def get_attendance(filters):
 	data = []
-	attendance = frappe.get_all('Attendance',{'attendance_date':('between',(filters.from_date,filters.to_date))},['*'])
+	attendance = get_employees(filters)
 	for att in attendance:
 		if att.shift and att.out_time:
 			shift_time = frappe.get_value("Shift Type", {'name': att.shift}, ["end_time"])
@@ -46,3 +46,21 @@ def get_attendance(filters):
 				row = [att.employee, att.employee_name, att.department, frappe.utils.data.format_date(att.attendance_date), att.shift, shift_end_time, att.out_time,end_time - att.out_time]
 				data.append(row)
 	return data
+
+def get_employees(filters):
+    conditions = ''
+    if filters.employee:
+        conditions += "and employee = '%s' " % (filters.employee)
+    if filters.employee_category:
+        conditions += "and custom_employee_category = '%s' " % (filters.employee_category)
+    if filters.department:
+        conditions += "and department = '%s' " % (filters.department)
+    if filters.designation:
+        conditions += "and custom_designation = '%s' " % (filters.designation)
+    employees = frappe.db.sql("""
+        select * 
+        from `tabAttendance` 
+        where docstatus != 2 
+        and attendance_date between '%s' and '%s' %s 
+    """ % (filters.from_date, filters.to_date, conditions), as_dict=True)
+    return employees

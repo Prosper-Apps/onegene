@@ -55,10 +55,12 @@ app_license = "MIT"
 # ----------
 
 # add methods and filters to jinja environment
-# jinja = {
-#	"methods": "onegene.utils.jinja_methods",
-#	"filters": "onegene.utils.jinja_filters"
-# }
+jinja = {
+	"methods":[
+        "onegene.onegene.custom.get_data_system",
+	] 
+	# "filters": "onegene.utils.jinja_filters"
+}
 
 # Installation
 # ------------
@@ -110,20 +112,19 @@ app_license = "MIT"
 # ---------------
 # Override standard doctype classes
 
-# override_doctype_class = {
-#	"ToDo": "custom_app.overrides.CustomToDo"
-# }
+override_doctype_class = {
+	"Leave Application": "onegene.overrides.CustomLeaveApplication",
+    "Compensatory Leave Request":"onegene.overrides.CustomCompensatoryLeaveRequest",
+	"Salary Slip": "onegene.overrides.CustomSalarySlip"
+}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-doc_events = {
-	"Employee Separation": {
-		"on_submit" : "onegene.onegene.doctype.resignation_form.resignation_form.update_employee",
-        "on_cancel" : "onegene.onegene.doctype.resignation_form.resignation_form.revert_employee"
-	}
-}
+# doc_events = {
+# 	
+# }
 
 # Scheduled Tasks
 # ---------------
@@ -137,6 +138,12 @@ scheduler_events = {
 		"onegene.onegene.custom.generate_production_plan"
 	],
 	"cron": {
+         "0 2 * * * *" : [
+            "onegene.mark_attendance.mark_att_multidate"
+		],
+        "*/20 * * * *" : [
+            "onegene.mark_attendance.mark_att"
+		],
 		"0 0 26 * *" : [
 			"onegene.onegene.custom.bday_allocate"
 		],
@@ -162,7 +169,8 @@ scheduler_events = {
     # ],
     "monthly":[
 		# "onegene.tasks.monthly",
-		"onegene.onegene.custom.sick_leave_allocation",
+		"onegene.onegene.custom.sick_leave_allocation"
+        "onegene.onegene.custom.create_lwf",
 	],
 }
 
@@ -243,7 +251,12 @@ doc_events = {
 		"on_update_after_submit":"onegene.onegene.utils.update_child_item"
 	},
 	"Employee":{
-		"validate": "onegene.onegene.custom.inactive_employee"
+		"validate": "onegene.onegene.custom.inactive_employee",
+        'after_insert':'onegene.onegene.custom.create_user_id',
+        "on_update": ["onegene.onegene.custom.renamed_doc","onegene.onegene.custom.update_birthday_alowance","onegene.onegene.custom.mark_disable"]
+	},
+	"User":{
+		'after_insert':'onegene.onegene.custom.remove_system_manager_role',
 	},
 	"Order Schedule":{
 		"on_update": ["onegene.onegene.utils.open_qty_so","onegene.onegene.utils.update_order_sch_qty"]
@@ -253,14 +266,40 @@ doc_events = {
 		"on_cancel": "onegene.onegene.utils.revert_order_schedule_table"
 	},
 	"Salary Slip":{
-		"after_save":["onegene.onegene.custom.weekly_off","onegene.onegene.custom.weekly_off","onegene.onegene.custom.fixed_salary"],
+		# "after_insert":["onegene.onegene.custom.weekly_off","onegene.onegene.custom.fixed_salary"],
+        # "validate":"onegene.onegene.custom.fixed_salary"
+        "after_insert":["onegene.onegene.custom.fixed_salary"],
 	},
 	"Attendance Request":{
-		"on_submit": ["onegene.onegene.custom.od_hours_update"]
+		"on_submit": ["onegene.onegene.custom.od_hours_update"],
+        "on_cancel": ["onegene.onegene.custom.att_request_cancel"],
+        "validate":"onegene.onegene.custom.condition_for_ar"
 	},
+    # "Attendance":{
+	# 	"on_update": ["onegene.onegene.utils.mark_wh_ot_with_employee"]
+	# },
 	# "Order Schedule":{
 	# 	"on_update": "onegene.onegene.custom.get_pending_qty"
 	# # 	"on_update": "onegene.onegene.custom.get_customer_name.",
 	# },
-
+   
+    "Employee Separation": {
+		"on_submit" : "onegene.onegene.doctype.resignation_form.resignation_form.update_employee",
+        "on_cancel" : "onegene.onegene.doctype.resignation_form.resignation_form.revert_employee"
+	},
+    "Leave Application":{
+		"after_insert": "onegene.onegene.custom.otbalance",
+        "on_submit":"onegene.onegene.custom.otbalance",
+		"on_cancel": "onegene.onegene.utils.cancel_leave_application",
+		"validate": ["onegene.onegene.custom.restrict_for_zero_balance","onegene.onegene.custom.condition_for_la"]
+	},
+    "Compensatory Leave Request":{
+        "validate":"onegene.onegene.custom.condition_for_compoff_lr",
+	},
+    "Attendance Permission":{
+        "validate":"onegene.onegene.custom.condition_for_ap",
+	},
+    "Night Shift Auditors Plan Swapping":{
+       "validate":"onegene.onegene.custom.condition_for_nsaps", 
+	},
 }

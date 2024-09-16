@@ -10,7 +10,6 @@
   "employee_name",
   "employee_category",
   "column_break_doic",
-  "company",
   "department",
   "designation",
   "section_break_cvsh",
@@ -18,10 +17,11 @@
   "column_break_wopc",
   "permission_hours",
   "section_break_u42s",
-  "from_time",
   "approver",
-  "column_break_71wi",
+  "session",
+  "from_time",
   "to_time",
+  "column_break_71wi",
   "reason",
   "amended_from"
  ],
@@ -79,10 +79,12 @@
    "fieldtype": "Column Break"
   },
   {
+   "default": "2",
    "fieldname": "permission_hours",
    "fieldtype": "Select",
    "label": "Permission Hours",
-   "options": "\n1\n2",
+   "options": "2",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -90,9 +92,11 @@
    "fieldtype": "Section Break"
   },
   {
+   "depends_on": "eval:doc.session == \"Flexible\"",
    "fieldname": "from_time",
    "fieldtype": "Time",
-   "label": "From Time"
+   "label": "From Time",
+   "mandatory_depends_on": "eval:doc.session == \"Flexible\""
   },
   {
    "fieldname": "column_break_71wi",
@@ -129,24 +133,25 @@
    "read_only": 1
   },
   {
-   "fetch_from": "employee.company",
-   "fieldname": "company",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Company",
-   "options": "Company",
    "fetch_from": "employee.leave_approver",
    "fieldname": "approver",
    "fieldtype": "Link",
+   "in_standard_filter": 1,
    "label": "Approver",
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "session",
+   "fieldtype": "Select",
+   "label": "Session",
+   "options": "\nFirst Half\nSecond Half\nFlexible"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-01-22 12:24:20.927467",
+ "modified": "2024-03-25 08:22:22.459565",
  "modified_by": "Administrator",
  "module": "ONEGENE",
  "name": "Attendance Permission",
@@ -166,7 +171,9 @@
    "write": 1
   }
  ],
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "employee_name"
 }

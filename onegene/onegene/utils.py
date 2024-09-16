@@ -13,7 +13,7 @@ from frappe.utils import (
 	cint,
 	comma_and,
 	flt,
-	 formatdate,
+	formatdate,
 	get_link_to_form,
 	getdate,
 	now_datetime,
@@ -21,6 +21,30 @@ from frappe.utils import (
 	nowdate,
 	today,
 )
+from pickle import TRUE
+from time import strptime
+from traceback import print_tb
+from frappe.utils.data import ceil, get_time, get_year_start
+import json
+import datetime
+from frappe.utils import (getdate, cint, add_months, date_diff, add_days,
+	nowdate, get_datetime_str, cstr, get_datetime, now_datetime, format_datetime)
+from datetime import datetime
+from calendar import monthrange
+from frappe import _, msgprint
+from frappe.utils import flt
+from frappe.utils import cstr, cint, getdate,get_first_day, get_last_day, today, time_diff_in_hours
+import requests
+from datetime import date, timedelta,time
+from datetime import datetime, timedelta
+from frappe.utils import get_url_to_form
+import math
+import dateutil.relativedelta
+from frappe.utils.background_jobs import enqueue
+import datetime as dt
+from datetime import datetime, timedelta
+from frappe.utils import cstr, add_days, date_diff, getdate,today,gzip_decompress
+	
 
 @frappe.whitelist()
 def return_sales_order_qty(item,posting_date):
@@ -50,7 +74,6 @@ def update_order_schedule_table(doc,method):
 				frappe.db.set_value("Sales Order Schedule",i.custom_against_order_schedule,'delivery_qty',qty)
 				frappe.db.set_value("Order Schedule",{"child_name":i.custom_against_order_schedule},'delivered_qty',qty)
 				frappe.db.set_value("Order Schedule",{"child_name":i.custom_against_order_schedule},'delivered_amount',del_amount)
-
 				frappe.db.set_value("Sales Order Schedule",i.custom_against_order_schedule,'pending_qty',pending_qty)
 				frappe.db.set_value("Order Schedule",{"child_name":i.custom_against_order_schedule},'pending_qty',pending_qty)
 				frappe.db.set_value("Order Schedule",{"child_name":i.custom_against_order_schedule},'pending_amount',pen_amount)
@@ -111,11 +134,6 @@ def update_order_sch_qty(doc,method):
 			frappe.db.set_value("Sales Order Schedule",i.name,'schedule_qty',qty)
 			frappe.db.set_value("Sales Order Schedule",i.name,'pending_qty',qty)
 
-			
-	# for k in sale.custom_schedule_table:
-	#     if k.order_schedule == doc.name:
-	#         qty = doc.qty
-	
 @frappe.whitelist()
 def supplier_mpd(item):
 	supplier = frappe.get_doc("Item",item)
@@ -194,8 +212,9 @@ def mat_req_item(item):
 	return data
 
 @frappe.whitelist()
-def set_naming(employee_category, designation,department,contractor,contractor_shortcode):
-	if employee_category != "Contractor":
+def set_naming(employee_category = None, designation = None ,department = None):
+	code = ''
+	if employee_category == "Apprentice" and department == "Driver - WAIP":
 		if frappe.db.exists("Employee", {'employee_category': employee_category, 'designation': designation}):
 			if department != 'Driver - WAIP':
 				query = frappe.db.sql("""
@@ -221,54 +240,59 @@ def set_naming(employee_category, designation,department,contractor,contractor_s
 				lengt = len(str_len)
 				ty = str(lengt)
 				if ty == "4":
-					if employee_category=='Apprentice' and designation=='Apprentice':
-						code = 'AN' + str(leng)
-					if employee_category == 'Staff' or 'SUB STAFF':
+					if employee_category=='Apprentice':
+						code =  'AN' + str(leng)
+					elif employee_category == 'Staff' or 'Sub Staff':
 						code = 'S' + str(leng)
-					if employee_category == 'Operators' and designation == 'Operator':
+					elif employee_category == 'Operator' and designation == 'Operator':
 						code = 'H' + '00' + str(leng)
-					if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
+					elif employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
 						code = 'DR' + str(leng)
-					if employee_category == 'Staff' and designation == 'General Manager':
+					elif employee_category == 'Staff' and designation == 'General Manager':
 						code = 'KR' + str(leng)
-					if employee_category == 'Operators' and designation == 'Driver':
+					elif employee_category == 'Operator' and designation == 'Driver':
 						code = 'DR'  + str(leng)
 				elif ty == "3":
 					if employee_category == 'Staff' :
 						code = 'S' + '0' + str(leng)
-					if employee_category == 'SUB STAFF':
+					elif employee_category == 'Sub Staff':
 						code = 'S' + '0' + str(leng)
-					if employee_category == 'Staff' and designation == 'General Manager':
+					elif employee_category == 'Staff' and designation == 'General Manager':
 						code = 'KR' + str(leng)
-					if employee_category == 'Operators' and designation == 'Driver':
+					elif employee_category == 'Operator' and designation == 'Driver':
 						code = 'DR' + '0' + str(leng)
 				elif ty == "2":
 					if employee_category == 'Staff' and designation == 'General Manager':
 						code = 'KR'   + '00' + str(leng)
-					if employee_category == 'Operators' and designation == 'Driver':
+					elif employee_category == 'Operator' and designation == 'Driver':
 						code = 'DR'  + '00' + str(leng)
-					if employee_category == 'Operators' and designation == 'Driver':
+					elif employee_category == 'Operator' and designation == 'Driver':
 						code = 'DR'  + '0' + str(leng) 
 				elif ty == "1":
-					if employee_category == 'Operators' and designation == 'Operator':
+					if employee_category == 'Operator' and designation == 'Operator':
 						code = 'H' + '000' + str(leng)
-					if employee_category == 'Staff' and  employee_category == 'SUB STAFF':
+					elif employee_category == 'Staff' and  employee_category == 'Sub Staff':
 						code = 'S' + '000' + str(leng)
-					if employee_category == 'Staff' and designation == 'General Manager':
+					elif employee_category == 'Staff' and designation == 'General Manager':
 						code = 'KR'   + '00' + str(leng)
-					if employee_category == 'DIRECTOR':
+					elif employee_category == 'DIRECTOR':
 						if designation == 'SMD':
 							code =  "SMD" + '0' + str(leng)
-						if designation == "CMD":
+						elif designation == "CMD":
 							code =  "CMD" + '0' + str(leng)
-						if designation == "BMD":
+						elif designation == "BMD":
 							code =  "BMD" + '0' + str(leng)
 				else:
 					code = str(leng) 
 		else:
 			code =  "0001"
-	else:
-		if frappe.db.exists("Employee", {'employee_category': employee_category , 'contractor' : contractor}):
+		return code
+
+@frappe.whitelist()
+def set_naming_contractor(employee_category = None,contractor = None,contractor_shortcode = None):
+	code = ''
+	if employee_category == "Contractor":
+		if frappe.db.exists("Employee", {'employee_category': employee_category , 'custom_contractor' : contractor}):
 			query = frappe.db.sql("""
 				SELECT name 
 				FROM `tabEmployee` 
@@ -279,121 +303,215 @@ def set_naming(employee_category, designation,department,contractor,contractor_s
 			if query:
 				input_string = query[0]['name']
 				match = re.search(r'(\d+)$', input_string)
-				if match:
-					number = match.group(1)
-					leng = int(number) + 1
-					str_len = str(leng)
-					lengt = len(str_len)
-					ty = str(lengt)
-					if ty == "4":
-						code == contractor_shortcode + str(leng)
-					elif ty == "3":
-						code == contractor_shortcode + "0" + str(leng)
-					elif ty == "2":
-						code == contractor_shortcode + "00" + str(leng)
-					elif ty == "1":
-						code == contractor_shortcode + "000" + str(leng)
+			if match:
+				number = match.group(1)
+				leng = int(number) + 1
+				str_len = str(leng)
+				lengt = len(str_len)
+				ty = str(lengt)
+				frappe.errprint(ty)
+				frappe.errprint(contractor_shortcode)
+				if ty == "4":
+					code == contractor_shortcode + str(leng)
+				elif ty == "3":
+					code == contractor_shortcode + "0" + str(leng)
+				elif ty == "2":
+					code == contractor_shortcode + "00" + str(leng)
+				elif ty == "1":
+					code == contractor_shortcode + "000" + str(leng)
 		else:
-			code == contractor_shortcode + "0001"
-
+			frappe.errprint(contractor_shortcode)
+			code = str(contractor_shortcode) + "0001"
+			frappe.errprint(str(contractor_shortcode))
 		return code
 
-# @frappe.whitelist()
-# def set_naming(employee_category, designation,department,contractor,contractor_shortcode):
-#     if employee_category not in ["Contractor","Director"]:
-#         if frappe.db.exists("Employee", {'employee_category': employee_category}):
-#             if department != 'Driver - WAIP':
-#                 query = frappe.db.sql("""
-#                     SELECT name 
-#                     FROM `tabEmployee` 
-#                     WHERE employee_category = %s AND department != 'Driver - WAIP'
-#                     ORDER BY name DESC
-#                 """, (employee_category, designation), as_dict=True)
-#             elif department == 'Driver - WAIP':
-#                 query= frappe.db.sql("""
-#                     SELECT name 
-#                     FROM `tabEmployee` 
-#                     WHERE employee_category = %s AND department == 'Driver - WAIP'
-#                     ORDER BY name DESC
-#             """, (employee_category, designation), as_dict=True)
-#             if query:
-#                 input_string = query[0]['name']
-#                 match = re.search(r'(\d+)$', input_string)
-#             if match:
-#                 number = match.group(1)
-#                 leng = int(number) + 1
-#                 str_len = str(leng)
-#                 lengt = len(str_len)
-#                 ty = str(lengt)
-#                 if ty == "4":
-#                     if employee_category=='Apprentice' and designation=='Apprentice':
-#                         code = 'AN' + str(leng)
-#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
-#                         code = 'DR' + str(leng)
-#                     if employee_category == 'Staff' or 'SUB STAFF':
-#                         if designation != 'General Manager':
-#                             code = 'S' + str(leng)
-#                         elif designation == 'General Manager':
-#                             code = 'KR' + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Operator':
-#                         code = 'H'  + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Driver':
-#                         code = 'DR'  + str(leng)
-#                 elif ty == "3":
-#                     if employee_category=='Apprentice' and designation=='Apprentice':
-#                         code = 'AN' + "0" + str(leng)
-#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
-#                         code = 'DR' + "0" + str(leng)
-#                     if employee_category == 'Staff' or 'SUB STAFF':
-#                         if designation != 'General Manager':
-#                             code = 'S' + "0" + str(leng)
-#                         elif designation == 'General Manager':
-#                             code = 'KR' + "0" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Operator':
-#                         code = 'H'  + "0" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Driver':
-#                         code = 'DR'  + "0" + str(leng)
-#                 elif ty == "2":
-#                     if employee_category=='Apprentice' and designation=='Apprentice':
-#                         code = 'AN' + "00" + str(leng)
-#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
-#                         code = 'DR' + "00" + str(leng)
-#                     if employee_category == 'Staff' or 'SUB STAFF':
-#                         if designation != 'General Manager':
-#                             code = 'S' + "00" + str(leng)
-#                         elif designation == 'General Manager':
-#                             code = 'KR' + "00" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Operator':
-#                         code = 'H'  + "00" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Driver':
-#                         code = 'DR'  + "00" + str(leng)
-#                 elif ty == "1":
-#                     if employee_category=='Apprentice' and designation=='Apprentice':
-#                         code = 'AN' + "000" + str(leng)
-#                     if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
-#                         code = 'DR' + "000" + str(leng)
-#                     if employee_category == 'Staff' or 'SUB STAFF':
-#                         if designation != 'General Manager':
-#                             code = 'S' + "000" + str(leng)
-#                         elif designation == 'General Manager':
-#                             code = 'KR' + "000" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Operator':
-#                         code = 'H'  + "000" + str(leng)
-#                     if employee_category == 'Operators' and designation == 'Driver':
-#                         code = 'DR'  + "000" + str(leng)
-#         else:
-#             if employee_category=='Apprentice' and designation=='Apprentice':
-#                 code = 'AN' + "000" + str(leng)
-#             if employee_category == 'Apprentice' and designation == 'Apprentice' and department == 'Driver - WAIP':
-#                 code = 'DR' + "000" + str(leng)
-#             if employee_category == 'Staff' or 'SUB STAFF':
-#                 if designation != 'General Manager':
-#                     code = 'S' + "000" + str(leng)
-#                 elif designation == 'General Manager':
-#                     code = 'KR' + "000" + str(leng)
-#             if employee_category == 'Operators' and designation == 'Operator':
-#                 code = 'H'  + "000" + str(leng)
-#             if employee_category == 'Operators' and designation == 'Driver':
-#                 code = 'DR'  + "000" + str(leng)
-#     return code
+@frappe.whitelist()
+def mark_wh_ot_with_employee(doc,method):
+	att = frappe.get_doc('Attendance',{'name':doc.name},['*'])
+	if att.status != "On Leave":
+		if att.shift and att.in_time and att.out_time :
+			if att.in_time and att.out_time:
+				in_time = att.in_time
+				out_time = att.out_time
+			if isinstance(in_time, str):
+				in_time = datetime.strptime(in_time, '%Y-%m-%d %H:%M:%S')
+			if isinstance(out_time, str):
+				out_time = datetime.strptime(out_time, '%Y-%m-%d %H:%M:%S')
+			wh = time_diff_in_hours(out_time,in_time)
+			if wh > 0 :
+				if wh < 24.0:
+					time_in_standard_format = time_diff_in_timedelta(in_time,out_time)
+					frappe.db.set_value('Attendance', att.name, 'custom_total_working_hours', str(time_in_standard_format))
+					frappe.db.set_value('Attendance', att.name, 'working_hours', wh)
+				else:
+					wh = 24.0
+					frappe.db.set_value('Attendance', att.name, 'custom_total_working_hours',"23:59:59")
+					frappe.db.set_value('Attendance', att.name, 'working_hours',wh)
+				if wh < 4:
+					frappe.db.set_value('Attendance',att.name,'status','Absent')
+				elif wh >= 4 and wh < 8:
+					frappe.db.set_value('Attendance',att.name,'status','Half Day')
+				elif wh >= 8:
+					frappe.db.set_value('Attendance',att.name,'status','Present')  
+				shift_st = frappe.get_value("Shift Type",{'name':att.shift},['start_time'])
+				shift_et = frappe.get_value("Shift Type",{'name':att.shift},['end_time'])
+				shift_tot = time_diff_in_hours(shift_et,shift_st)
+				time_in_standard_format_timedelta = time_diff_in_timedelta(shift_et,out_time)
+				ot_hours = time(0,0,0)
+				hh = check_holiday(att.attendance_date,att.employee)
+				if not hh:
+					if wh > shift_tot:
+						shift_start_time = datetime.strptime(str(shift_et),'%H:%M:%S').time()
+						if att.shift in ['1','2','G'] :
+							if wh < 15 :
+								shift_date = att.attendance_date
+							else:
+								shift_date = add_days(att.attendance_date,+1)  
+						else:
+							shift_date = add_days(att.attendance_date,+1)  
+						ot_date_str = datetime.strptime(str(shift_date),'%Y-%m-%d').date()
+						shift_start_datetime = datetime.combine(ot_date_str,shift_start_time)
+						if shift_start_datetime < out_time :
+							extra_hours = out_time - shift_start_datetime
+							days = 1
+						else:
+							extra_hours = "00:00:00"
+							days = 0
+						if days == 1 :
+							duration = datetime.strptime(str(extra_hours), "%H:%M:%S")
+							total_seconds = (duration.hour * 3600 + duration.minute * 60 + duration.second)/3600
+							rounded_number = round(total_seconds, 3)
+							time_diff = datetime.strptime(str(extra_hours), '%H:%M:%S').time()
+							frappe.db.set_value('Attendance',att.name,'custom_extra_hours',rounded_number)
+							frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',extra_hours)
+							if time_diff.hour >= 1 :
+								if time_diff.minute <= 29:
+									ot_hours = time(time_diff.hour,0,0)
+								else:
+									ot_hours = time(time_diff.hour,30,0)
+							elif time_diff.hour == 0 :
+								if time_diff.minute <= 29:
+									ot_hours = time(0,0,0)
+								else:
+									ot_hours = time(time_diff.hour,30,0)
+							ftr = [3600,60,1]
+							hr = sum([a*b for a,b in zip(ftr, map(int,str(ot_hours).split(':')))])
+							ot_hr = round(hr/3600,1)
+							frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',ot_hours)
+							frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',ot_hr)
+						else:
+							frappe.db.set_value('Attendance',att.name,'custom_extra_hours',"0.0")
+							frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',"00:00:00")
+							frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',"00:00:00")
+							frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',"0.0")
+					else:
+						frappe.db.set_value('Attendance',att.name,'custom_extra_hours',"0.0")
+						frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',"00:00:00")
+						frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',"00:00:00")
+						frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',"0.0")
+				else:
+					if wh < 24.0:
+						extra_hours_float = wh
+					else:
+						extra_hours_float = 23.99
+					days = time_in_standard_format_timedelta.day
+					seconds = time_in_standard_format_timedelta.second
+					hours, remainder = divmod(seconds, 3600)
+					minutes, seconds = divmod(remainder, 60)
+					formatted_time = "{:02}:{:02}:{:02}".format(hours, minutes, seconds)
+					time_diff = datetime.strptime(str(formatted_time), '%H:%M:%S').time()
+					frappe.db.set_value('Attendance',att.name,'custom_extra_hours',extra_hours_float)
+					frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',time_diff)
+					if time_diff.hour >= 1 :
+						if time_diff.minute <= 29:
+							ot_hours = time(time_diff.hour,0,0)
+						else:
+							ot_hours = time(time_diff.hour,30,0)
+					elif time_diff.hour == 0 :
+						if time_diff.minute <= 29:
+							ot_hours = time(0,0,0)
+						else:
+							ot_hours = time(time_diff.hour,30,0)
+					ftr = [3600,60,1]
+					hr = sum([a*b for a,b in zip(ftr, map(int,str(ot_hours).split(':')))])
+					ot_hr = round(hr/3600,1)
+					frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',ot_hours)
+					frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',ot_hr)
+			else:
+				frappe.db.set_value('Attendance',att.name,'custom_total_working_hours',"00:00:00")
+				frappe.db.set_value('Attendance',att.name,'working_hours',"0.0")
+				frappe.db.set_value('Attendance',att.name,'custom_extra_hours',"0.0")
+				frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',"00:00:00")
+				frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',"00:00:00")
+				frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',"0.0")
+		else:
+			frappe.db.set_value('Attendance',att.name,'custom_total_working_hours',"00:00:00")
+			frappe.db.set_value('Attendance',att.name,'working_hours',"0.0")
+			frappe.db.set_value('Attendance',att.name,'custom_extra_hours',"0.0")
+			frappe.db.set_value('Attendance',att.name,'custom_total_extra_hours',"00:00:00")
+			frappe.db.set_value('Attendance',att.name,'custom_total_overtime_hours',"00:00:00")
+			frappe.db.set_value('Attendance',att.name,'custom_overtime_hours',"0.0")
+
+def time_diff_in_timedelta(time1, time2):
+	return time2 - time1
+
+def check_holiday(date,emp):
+	holiday_list = frappe.db.get_value('Employee',{'name':emp},'holiday_list')
+	holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off from `tabHoliday List`
+	left join `tabHoliday` on `tabHoliday`.parent = `tabHoliday List`.name where `tabHoliday List`.name = '%s' and holiday_date = '%s' """%(holiday_list,date),as_dict=True)
+	doj= frappe.db.get_value("Employee",{'name':emp},"date_of_joining")
+	status = ''
+	if holiday :
+		if doj < holiday[0].holiday_date:
+			if holiday[0].weekly_off == 1:
+				return "WW"     
+			else:
+				return "HH"
+			
+
+@frappe.whitelist()
+def get_details_for_ot_coff(employee,work_from_date,work_end_date):
+	month_first_date = get_first_day(work_from_date)
+	month_last_date = get_last_day(work_from_date)
+	dates = get_dates(work_from_date,work_end_date)
+	ot_hours = 0
+	for date in dates:
+		if not check_holiday(date, employee):
+			if frappe.db.exists('Attendance', {'attendance_date': date, 'employee': employee, 'docstatus': 1}):
+				att = frappe.get_doc('Attendance', {'attendance_date': date, 'employee': employee, 'docstatus': 1})
+				ot_hours += att.custom_overtime_hours
+	used_ot = frappe.db.sql("""SELECT * from `tabCompensatory Leave Request` WHERE employee = %s AND work_from_date BETWEEN %s AND %s AND docstatus = 1""", (employee, month_first_date, month_last_date), as_dict=True)
+	d = 0
+	for u in used_ot:
+		diff = date_diff(u.work_end_date,u.work_from_date) + 1
+		d += diff
+	used_coff = d
+	if d > 0 :
+		used_ot_hours = d * 8
+		pending_ot = ot_hours - used_ot_hours
+	else:
+		pending_ot = ot_hours
+	avail_coff = pending_ot // 8 if pending_ot >= 8 else 0
+	avail_ot = pending_ot % 8 if pending_ot >= 8 else pending_ot
+	return ot_hours,used_coff,pending_ot,avail_coff,avail_ot
+
+def get_dates(from_date,to_date):
+	no_of_days = date_diff(add_days(to_date, 1), from_date)
+	dates = [add_days(from_date, i) for i in range(0, no_of_days)]
+	return dates
+
+def check_holiday(date,emp):
+	holiday_list = frappe.db.get_value('Employee',{'name':emp},'holiday_list')
+	holiday = frappe.db.sql("""select `tabHoliday`.holiday_date,`tabHoliday`.weekly_off from `tabHoliday List`
+	left join `tabHoliday` on `tabHoliday`.parent = `tabHoliday List`.name where `tabHoliday List`.name = '%s' and holiday_date = '%s' """%(holiday_list,date),as_dict=True)
+	doj= frappe.db.get_value("Employee",{'name':emp},"date_of_joining")
+	status = ''
+	if holiday :
+		if doj < holiday[0].holiday_date:
+			if holiday[0].weekly_off == 1:
+				return "WW"     
+			else:
+				return "HH"
+
+
 
